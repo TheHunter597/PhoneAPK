@@ -81,6 +81,18 @@ workflows:
           EOF
             echo "✓ keystore.properties generated from Codemagic credentials"
           fi
+      - name: Install required Android SDK components
+        script: |
+          echo "=== Installing NDK 27.1.12297006 + CMake 3.22.1 (needed by nodejs-mobile + RN new arch) ==="
+          # sdkmanager is the Android SDK's package manager. Yesno pipes "y"
+          # to its license prompt.
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            "ndk;27.1.12297006" \
+            "cmake;3.22.1" \
+            "build-tools;35.0.0" \
+            "platforms;android-35" 2>&1 | tail -20 || true
+          echo "=== Verifying NDK install ==="
+          ls $ANDROID_HOME/ndk/ 2>/dev/null
       - name: Build release APK
         script: |
           set -x
@@ -103,10 +115,12 @@ workflows:
           ls $ANDROID_HOME/build-tools/ 2>/dev/null
           echo "--- Platforms ---"
           ls $ANDROID_HOME/platforms/ 2>/dev/null
-          echo "=== Starting Gradle build ==="
-          ./gradlew assembleRelease --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64
+          echo "=== Starting Gradle build (full log → /tmp/gradle-build.log) ==="
+          # Tee the output so we get a downloadable artifact even if the step fails.
+          ./gradlew assembleRelease --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64 2>&1 | tee /tmp/gradle-build.log
     artifacts:
       - android/app/build/outputs/apk/release/*.apk
+      - /tmp/gradle-build.log
     publishing:
       email:
         recipients:
@@ -144,6 +158,16 @@ workflows:
           cd nodejs-assets/nodejs-project
           npm install --omit=dev --no-audit --no-fund
           ls node_modules/@img/
+      - name: Install required Android SDK components
+        script: |
+          echo "=== Installing NDK 27.1.12297006 + CMake 3.22.1 ==="
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            "ndk;27.1.12297006" \
+            "cmake;3.22.1" \
+            "build-tools;35.0.0" \
+            "platforms;android-35" 2>&1 | tail -20 || true
+          echo "=== Verifying NDK install ==="
+          ls $ANDROID_HOME/ndk/ 2>/dev/null
       - name: Build debug APK
         script: |
           set -x
@@ -158,10 +182,11 @@ workflows:
           ls $ANDROID_HOME/ndk/ 2>/dev/null || echo "(no NDK directory found)"
           echo "--- Available CMake versions ---"
           ls $ANDROID_HOME/cmake/ 2>/dev/null || echo "(no CMake directory found)"
-          echo "=== Starting Gradle build ==="
-          ./gradlew assembleDebug --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64
+          echo "=== Starting Gradle build (full log → /tmp/gradle-build.log) ==="
+          ./gradlew assembleDebug --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64 2>&1 | tee /tmp/gradle-build.log
     artifacts:
       - android/app/build/outputs/apk/debug/*.apk
+      - /tmp/gradle-build.log
     publishing:
       email:
         recipients:
