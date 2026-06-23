@@ -83,10 +83,28 @@ workflows:
           fi
       - name: Build release APK
         script: |
+          set -x
           cd android
           # Ensure gradlew is executable (git checkout can drop the +x bit).
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64
+          # Generate local.properties — some RN gradle plugin versions need
+          # this even when ANDROID_HOME is set as an env var.
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "=== Pre-build diagnostics ==="
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "JAVA_HOME=$JAVA_HOME"
+          java -version
+          echo "--- Available NDK versions ---"
+          ls $ANDROID_HOME/ndk/ 2>/dev/null || echo "(no NDK directory found)"
+          echo "--- Available CMake versions ---"
+          ls $ANDROID_HOME/cmake/ 2>/dev/null || echo "(no CMake directory found)"
+          echo "--- Build-Tools ---"
+          ls $ANDROID_HOME/build-tools/ 2>/dev/null
+          echo "--- Platforms ---"
+          ls $ANDROID_HOME/platforms/ 2>/dev/null
+          echo "=== Starting Gradle build ==="
+          ./gradlew assembleRelease --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64
     artifacts:
       - android/app/build/outputs/apk/release/*.apk
     publishing:
@@ -128,10 +146,20 @@ workflows:
           ls node_modules/@img/
       - name: Build debug APK
         script: |
+          set -x
           cd android
-          # Ensure gradlew is executable (git checkout can drop the +x bit).
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "=== Pre-build diagnostics ==="
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "JAVA_HOME=$JAVA_HOME"
+          java -version
+          echo "--- Available NDK versions ---"
+          ls $ANDROID_HOME/ndk/ 2>/dev/null || echo "(no NDK directory found)"
+          echo "--- Available CMake versions ---"
+          ls $ANDROID_HOME/cmake/ 2>/dev/null || echo "(no CMake directory found)"
+          echo "=== Starting Gradle build ==="
+          ./gradlew assembleDebug --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64
     artifacts:
       - android/app/build/outputs/apk/debug/*.apk
     publishing:
