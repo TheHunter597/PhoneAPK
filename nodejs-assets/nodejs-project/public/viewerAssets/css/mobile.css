@@ -1,0 +1,392 @@
+/* ============================================== */
+/* ===== MOBILE / RESPONSIVE LAYOUT ===== */
+/* ============================================== */
+/*
+  On phones/tablets (≤768px) the desktop 3-pane layout (sidebar | main |
+  outline-rail) doesn't fit. We convert the side panels into overlay drawers
+  and add a top bar with toggle buttons. A tap-target backdrop closes whichever
+  drawer is open.
+
+  Design decisions:
+    - Sidebar + outline rail → fixed overlay drawers (slide in from edges)
+    - Resize handle → hidden (no resizing on touch)
+    - #main → full width, horizontal overflow clipped (overflow-x: hidden)
+    - Tables → already wrapped in .table-scroll (see markdown.css) so they
+      pan horizontally inside the column instead of blowing out the page
+    - Highlight blocks → overflow-x: auto (see new-features.css) so tables
+      inside @@@ blocks scroll instead of disappearing
+    - Tabs → horizontally scrollable strip (no wrapping)
+    - Settings panel → full-width bottom sheet
+    - Chat panel → full width (already handled at ≤600px; bumped to 768px here)
+    - Content-width slider → ignored (full-width column)
+
+  This file is imported LAST in viewerStyles.css so its media-query rules win
+  over the per-file @media blocks (e.g. outline.css hides #outline-rail at
+  ≤600px — we bring it back as a drawer here).
+*/
+
+/* ============================================================
+   MOBILE TOP BAR (only visible ≤768px)
+   ============================================================ */
+#mobile-topbar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  #mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    padding: 0 0.4rem;
+    padding-top: env(safe-area-inset-top);
+    background: #161616;
+    border-bottom: 1px solid #ffffff1a;
+    z-index: 250;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  body.dark-mode #mobile-topbar {
+    background: var(--dk-panel, #1c1917);
+    border-bottom-color: var(--dk-line, #292524);
+  }
+
+  .mobile-icon-btn {
+    background: transparent;
+    border: none;
+    color: #adadad;
+    font-size: 1.15rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+  .mobile-icon-btn:hover,
+  .mobile-icon-btn:active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8f8f8;
+  }
+  body.dark-mode .mobile-icon-btn { color: var(--dk-ink-soft, #d6d3d1); }
+  body.dark-mode .mobile-icon-btn:hover { background: rgba(255,255,255,0.06); color: var(--dk-ink, #f5f5f4); }
+
+  #mobile-title {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #f8f8f8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 0.25rem;
+  }
+  body.dark-mode #mobile-title { color: var(--dk-ink, #f5f5f4); }
+}
+
+/* ============================================================
+   BACKDROP (closes drawers on tap)
+   ============================================================ */
+#mobile-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  #mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 180;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  /* When a drawer is open, show the backdrop */
+  body.mobile-drawer-open #mobile-backdrop {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ============================================================
+   SIDEBAR → left overlay drawer
+   ============================================================ */
+@media (max-width: 768px) {
+  #sidebar {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    width: 86vw !important;
+    max-width: 320px !important;
+    min-width: 0 !important;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45);
+    border-right: 1px solid #ffffff1a;
+  }
+  body.dark-mode #sidebar {
+    background: var(--dk-panel, #1c1917);
+    border-right-color: var(--dk-line, #292524);
+  }
+  /* Open state — slide in. Wins over .fully-hidden (desktop collapse). */
+  #sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+  /* Desktop "fully-hidden" must NOT permanently kill the drawer on mobile —
+     it should just be the closed (off-screen) state, openable via hamburger. */
+  #sidebar.fully-hidden {
+    width: 86vw !important;
+    max-width: 320px !important;
+    min-width: 0 !important;
+    border: none;
+    overflow: visible;
+  }
+
+  /* Hide desktop-only restore tab + resize handle on mobile */
+  #sidebar-show-btn { display: none !important; }
+  #resize-handle { display: none !important; }
+}
+
+/* ============================================================
+   OUTLINE RAIL → right overlay drawer
+   ============================================================ */
+@media (max-width: 768px) {
+  /* outline.css hides #outline-rail at ≤600px — bring it back as a drawer */
+  #outline-rail {
+    display: flex !important;
+    position: fixed !important;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    width: 86vw !important;
+    max-width: 320px !important;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.45);
+    border-left: 1px solid #ffffff1a;
+    overflow: hidden;
+  }
+  body.dark-mode #outline-rail {
+    background: var(--dk-panel, #1c1917);
+    border-left-color: var(--dk-line, #292524);
+  }
+  /* Open state */
+  #outline-rail.mobile-open {
+    transform: translateX(0) !important;
+    width: 86vw !important;
+    max-width: 320px !important;
+  }
+
+  /* On mobile there's no hover — always show the EXPANDED layout when the
+     drawer is open (mirrors the :hover / .pinned rules in outline.css). */
+  #outline-rail.mobile-open .outline-rail-header {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 0.7rem 0.8rem;
+  }
+  #outline-rail.mobile-open .outline-icon-btn {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.95rem;
+    padding: 0.45rem;
+    border-radius: 6px;
+  }
+  #outline-rail.mobile-open .outline-rail-label {
+    opacity: 1;
+    display: inline;
+  }
+  #outline-rail.mobile-open .outline-rail-body {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* The collapse (chevron) button is redundant on mobile — the backdrop /
+     hamburger handles closing. Hide it to avoid confusion. */
+  #outline-rail.mobile-open .outline-collapse-btn {
+    display: none;
+  }
+
+  /* Desktop restore tab hidden on mobile */
+  #outline-show-btn { display: none !important; }
+}
+
+/* ============================================================
+   MAIN CONTENT — full width, no horizontal overflow
+   ============================================================ */
+@media (max-width: 768px) {
+  #main {
+    width: 100%;
+    padding: 56px 0.75rem 0 0.75rem;
+    padding-top: calc(48px + env(safe-area-inset-top) + 0.5rem);
+    overflow-x: hidden !important; /* kill horizontal page scroll */
+    min-width: 0;
+  }
+  /* Ignore the content-width slider on mobile — use the full column */
+  #main .note-content,
+  #main .editable-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    font-size: 1rem;
+    padding-bottom: 4.5rem; /* room for the sticky tab strip */
+  }
+  /* Headings shrink a touch so they don't dominate small screens */
+  #main .note-content h1 { font-size: 1.6rem; }
+  #main .note-content h2 { font-size: 1.35rem; }
+  #main .note-content h3 { font-size: 1.15rem; }
+
+  /* Images never blow out the column */
+  #main .note-content img,
+  #main .editable-content img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Pre/code blocks scroll horizontally */
+  #main .note-content pre,
+  #main .editable-content pre {
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ============================================================
+   TABS — horizontally scrollable strip
+   ============================================================ */
+@media (max-width: 768px) {
+  #tabs-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.3rem 0.4rem;
+    position: sticky;
+    bottom: 0;
+  }
+  #tabs-container::-webkit-scrollbar { height: 3px; }
+  .tab-item {
+    flex-shrink: 0;
+    max-width: 130px;
+  }
+}
+
+/* ============================================================
+   SETTINGS PANEL → full-width bottom sheet
+   ============================================================ */
+@media (max-width: 768px) {
+  #settings-panel {
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    max-height: 82vh !important;
+    border-radius: 14px 14px 0 0 !important;
+    overflow-y: auto;
+    padding-bottom: calc(1.2rem + env(safe-area-inset-bottom));
+    z-index: 300; /* above drawers (200) and backdrop (180) */
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
+  }
+  body.dark-mode #settings-panel {
+    background: var(--dk-panel, #1c1917);
+    border-color: var(--dk-line, #292524);
+  }
+  /* When open on mobile, ignore the chat-shift positioning */
+  body:has(.chat-panel.open) #settings-panel {
+    right: 0 !important;
+  }
+
+  /* Hide the desktop floating settings/edit toggle buttons (replaced by topbar) */
+  #settings-toggle,
+  .edit-toggle-fixed {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   CHAT PANEL → full width (bump breakpoint 600→768)
+   ============================================================ */
+@media (max-width: 768px) {
+  .chat-panel {
+    width: 100% !important;
+  }
+  body:has(.chat-panel.open) #outline-rail,
+  body:has(.chat-panel.open) #outline-show-btn,
+  body:has(.chat-panel.open) #settings-panel {
+    right: 0 !important;
+    margin-right: 0 !important;
+  }
+  .chat-resize-handle { display: none !important; }
+}
+
+/* ============================================================
+   EDITOR — prevent horizontal blowout in contenteditable
+   ============================================================ */
+@media (max-width: 768px) {
+  #editableNote,
+  .note-editor {
+    max-width: 100%;
+    overflow-x: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  #editableNote table,
+  .editable-content table {
+    max-width: 100%;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ============================================================
+   MODALS / PROMPTS — fit small screens
+   ============================================================ */
+@media (max-width: 768px) {
+  .sidebar-prompt {
+    min-width: 0;
+    width: 92vw;
+    max-width: 360px;
+    margin: 1rem;
+  }
+  .sidebar-context-menu {
+    max-width: 88vw;
+  }
+}
+
+/* ============================================================
+   VERY NARROW PHONES (≤380px) — tighten further
+   ============================================================ */
+@media (max-width: 380px) {
+  #main {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  #main .note-content {
+    font-size: 0.95rem;
+  }
+  .mobile-icon-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.05rem;
+  }
+  #mobile-title {
+    font-size: 0.85rem;
+  }
+}

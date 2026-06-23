@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Obsidian Toolbox</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .hero {
+        background: linear-gradient(135deg, #1a3d28 0%, #2d7d46 100%);
+        color: #fff;
+        border-radius: var(--radius);
+        padding: 2.5rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+      }
+      .hero h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.4rem;
+        letter-spacing: -0.02em;
+      }
+      .hero p {
+        font-size: 1rem;
+        opacity: 0.9;
+        max-width: 560px;
+      }
+      .hero-badges {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+      }
+      .hero-badge {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.3rem 0.8rem;
+        border-radius: var(--radius-full);
+        font-size: 0.78rem;
+        font-weight: 500;
+        backdrop-filter: blur(4px);
+      }
+      .category {
+        margin-bottom: 2rem;
+      }
+      .category-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-subtle);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .category-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+      .tool-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1rem;
+      }
+      .tool-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.35rem 1.25rem;
+        text-decoration: none;
+        color: var(--text);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+      }
+      .tool-card::before {
+        content: "";
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: var(--primary);
+        transform: scaleY(0);
+        transform-origin: bottom;
+        transition: var(--transition);
+      }
+      .tool-card:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow);
+        text-decoration: none;
+        transform: translateY(-2px);
+      }
+      .tool-card:hover::before { transform: scaleY(1); transform-origin: top; }
+      .tool-icon {
+        font-size: 1.8rem;
+        width: 3rem;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-light);
+        border-radius: var(--radius-sm);
+        margin-bottom: 0.25rem;
+      }
+      .tool-name {
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+      .tool-desc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+        flex: 1;
+      }
+      .tool-link {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-top: 0.25rem;
+      }
+      .tool-card:hover .tool-link { gap: 0.5rem; }
+      .footer-note {
+        text-align: center;
+        color: var(--text-subtle);
+        font-size: 0.85rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page page-wide">
+      <!-- Hero -->
+      <section class="hero">
+        <h1>🧰 Obsidian Toolbox</h1>
+        <p>
+          A companion server for your Obsidian vault — browse notes with
+          live-preview, automate image compression &amp; linking, fix broken
+          links, and schedule automatic backups.
+        </p>
+        <div class="hero-badges">
+          <span class="hero-badge">📡 Live preview</span>
+          <span class="hero-badge">⚙️ Automation</span>
+          <span class="hero-badge">💾 Backups</span>
+        </div>
+      </section>
+
+      <!-- Browse -->
+      <div class="category">
+        <div class="category-title">📖 Browse &amp; Edit</div>
+        <div class="tool-grid">
+          <a href="viewer.html" class="tool-card">
+            <div class="tool-icon">📖</div>
+            <div class="tool-name">Note Viewer</div>
+            <div class="tool-desc">
+              Browse your vault like Obsidian — folder tree, rendered notes,
+              tabs, in-place editor, and instant live-preview of file changes.
+            </div>
+            <span class="tool-link">Open viewer →</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Automation -->
+      <div class="category">
+        <div class="category-title">⚙️ Automation</div>
+        <div class="tool-grid">
+          <a href="automation.html" class="tool-card">
+            <div class="tool-icon">🤖</div>
+            <div class="tool-name">Auto-Processor</div>
+            <div class="tool-desc">
+              Control the vault watchers: auto-compress PNGs to WebP, auto-link
+              note titles, auto-fix broken links, and convert HTML embeds — all
+              in one place.
+            </div>
+            <span class="tool-link">Manage automation →</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Note tools -->
+      <div class="category">
+        <div class="category-title">✏️ Note Tools</div>
+        <div class="tool-grid">
+          <a href="callout.html" class="tool-card">
+            <div class="tool-icon">📦</div>
+            <div class="tool-name">Callout Generator</div>
+            <div class="tool-desc">
+              Convert any text into an Obsidian callout block (info, tip,
+              warning, danger…) with optional collapsible sections.
+            </div>
+            <span class="tool-link">Generate →</span>
+          </a>
+          <a href="Linker.html" class="tool-card">
+            <div class="tool-icon">🔗</div>
+            <div class="tool-name">Note Linker</div>
+            <div class="tool-desc">
+              Paste text and automatically wrap any occurrence of your vault's
+              note titles in <code>[[&nbsp;]]</code> links.
+            </div>
+            <span class="tool-link">Link text →</span>
+          </a>
+          <a href="broken.html" class="tool-card">
+            <div class="tool-icon">🩹</div>
+            <div class="tool-name">Broken Links</div>
+            <div class="tool-desc">
+              Scan the entire vault for <code>[[links]]</code> pointing to
+              non-existent notes and auto-repair them in one click.
+            </div>
+            <span class="tool-link">Scan &amp; fix →</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Media + backup -->
+      <div class="category">
+        <div class="category-title">🖼️ Media &amp; 💾 Backups</div>
+        <div class="tool-grid">
+          <a href="Image-compressor.html" class="tool-card">
+            <div class="tool-icon">🖼️</div>
+            <div class="tool-name">Image Compressor</div>
+            <div class="tool-desc">
+              Drag-and-drop client-side image compression. JPEG / WebP / PNG,
+              quality &amp; max-width controls, download as ZIP.
+            </div>
+            <span class="tool-link">Compress images →</span>
+          </a>
+          <a href="backup.html" class="tool-card">
+            <div class="tool-icon">💾</div>
+            <div class="tool-name">Backup Manager</div>
+            <div class="tool-desc">
+              Automated vault backups at 6-hour, daily, 3-day, and weekly
+              intervals with success tracking, retry, and manual triggers.
+            </div>
+            <span class="tool-link">Manage backups →</span>
+          </a>
+        </div>
+      </div>
+
+      <p class="footer-note">
+        Server runs locally on port 4000 · Edit <code>config.json</code> to
+        point at your vault
+      </p>
+    </div>
+  </body>
+</html>

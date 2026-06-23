@@ -1,0 +1,291 @@
+/* ============================================== */
+/* ===== COW COMPANION — Polished SVG ===== */
+/* ============================================== */
+
+/* Container: fixed to viewport, covers entire screen */
+.animal-container {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9998;
+  overflow: hidden;
+  display: none;
+}
+
+/* The cow container */
+.animal {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  transition: left 0.06s linear, top 0.06s linear;
+  transform-origin: center bottom;
+  will-change: left, top;
+  opacity: 0.95;
+}
+
+/* Flip the SVG when facing left (don't flip the container — only the SVG) */
+.animal[data-facing="-1"] .cow-svg {
+  transform: scaleX(-1);
+}
+
+.cow-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transition: transform 0.3s ease;
+}
+
+/* ============================================== */
+/* ===== LEG ANIMATIONS (two-segment, with knee) ===== */
+/* ============================================== */
+/* Legs use transform-origin on the upper leg (hip joint).
+   The lower leg is inside a <g> that also rotates (knee joint).
+   Diagonal pairs move together (front-left + back-right, then opposite). */
+
+.leg-pair {
+  transform-origin: center top;
+}
+
+/* ---- Walking: slow, gentle gait ---- */
+.state-walking .leg-front-left .leg-upper {
+  animation: hip-swing-a 0.7s ease-in-out infinite;
+}
+.state-walking .leg-back-right .leg-upper {
+  animation: hip-swing-a 0.7s ease-in-out infinite;
+}
+.state-walking .leg-front-right .leg-upper {
+  animation: hip-swing-b 0.7s ease-in-out infinite;
+}
+.state-walking .leg-back-left .leg-upper {
+  animation: hip-swing-b 0.7s ease-in-out infinite;
+}
+/* Knee bends slightly during walk */
+.state-walking .leg-front-left .leg-lower-joint,
+.state-walking .leg-back-right .leg-lower-joint {
+  animation: knee-bend-a 0.7s ease-in-out infinite;
+}
+.state-walking .leg-front-right .leg-lower-joint,
+.state-walking .leg-back-left .leg-lower-joint {
+  animation: knee-bend-b 0.7s ease-in-out infinite;
+}
+
+@keyframes hip-swing-a {
+  0%, 100% { transform: rotate(15deg); }
+  50% { transform: rotate(-15deg); }
+}
+@keyframes hip-swing-b {
+  0%, 100% { transform: rotate(-15deg); }
+  50% { transform: rotate(15deg); }
+}
+@keyframes knee-bend-a {
+  0%, 100% { transform: translate(0, 16px) rotate(0deg); }
+  25% { transform: translate(0, 16px) rotate(10deg); }
+  75% { transform: translate(0, 16px) rotate(-5deg); }
+}
+@keyframes knee-bend-b {
+  0%, 100% { transform: translate(0, 16px) rotate(0deg); }
+  25% { transform: translate(0, 16px) rotate(-5deg); }
+  75% { transform: translate(0, 16px) rotate(10deg); }
+}
+
+/* Body bob during walk */
+.state-walking .cow-body {
+  animation: body-bob-walk 0.7s ease-in-out infinite;
+}
+@keyframes body-bob-walk {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Head slight bob during walk */
+.state-walking .cow-head-group {
+  animation: head-bob-walk 0.7s ease-in-out infinite;
+}
+@keyframes head-bob-walk {
+  0%, 100% { transform: translate(16px, 28px) rotate(0deg); }
+  50% { transform: translate(16px, 27px) rotate(-2deg); }
+}
+
+/* ============================================== */
+/* ===== EATING: head down, legs still ===== */
+/* ============================================== */
+.state-eating .leg-upper,
+.state-eating .leg-lower-joint {
+  animation: none !important;
+  transform: rotate(0deg) !important;
+}
+.state-eating .cow-head-group {
+  animation: head-eat 0.9s ease-in-out infinite;
+}
+@keyframes head-eat {
+  0%, 100% { transform: translate(16px, 28px) rotate(0deg); }
+  40% { transform: translate(14px, 33px) rotate(15deg); }
+  70% { transform: translate(15px, 31px) rotate(10deg); }
+}
+.state-eating .cow-body {
+  animation: body-eat-dip 0.9s ease-in-out infinite;
+}
+@keyframes body-eat-dip {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(1px); }
+}
+
+/* ============================================== */
+/* ===== SLEEPING: lying down, legs folded ===== */
+/* ============================================== */
+.state-sleeping .cow-svg {
+  transform: rotate(82deg) scale(0.85);
+  transform-origin: center center;
+  transition: transform 0.8s ease;
+  filter: brightness(0.8);
+}
+/* When facing left AND sleeping, compose flip + rotation */
+.animal[data-facing="-1"].state-sleeping .cow-svg {
+  transform: scaleX(-1) rotate(82deg) scale(0.85);
+}
+/* Legs fold up (shortened) */
+.state-sleeping .leg-upper {
+  animation: none !important;
+  transform: scaleY(0.3) !important;
+  transform-origin: top center;
+  transition: transform 0.8s ease;
+}
+.state-sleeping .leg-lower-joint {
+  animation: none !important;
+  transform: translate(0, 5px) scaleY(0.3) rotate(20deg) !important;
+  transform-origin: top center;
+  transition: transform 0.8s ease;
+}
+/* Gentle breathing */
+.state-sleeping .cow-body {
+  animation: breathing 3s ease-in-out infinite;
+}
+@keyframes breathing {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03, 1.02); }
+}
+/* Tail still */
+.state-sleeping .cow-tail { animation: none !important; }
+
+/* ============================================== */
+/* ===== TIRED: slow walk, head droops ===== */
+/* ============================================== */
+.state-tired .leg-front-left .leg-upper,
+.state-tired .leg-back-right .leg-upper {
+  animation: hip-swing-a 1.5s ease-in-out infinite;
+}
+.state-tired .leg-front-right .leg-upper,
+.state-tired .leg-back-left .leg-upper {
+  animation: hip-swing-b 1.5s ease-in-out infinite;
+}
+.state-tired .leg-lower-joint {
+  animation: none !important;
+}
+.state-tired .cow-head-group {
+  animation: head-droop 1.5s ease-in-out infinite;
+}
+@keyframes head-droop {
+  0%, 100% { transform: translate(16px, 28px) rotate(8deg); }
+  50% { transform: translate(16px, 30px) rotate(4deg); }
+}
+.state-tired .cow-body {
+  animation: body-bob-tired 1.5s ease-in-out infinite;
+  filter: brightness(0.85);
+}
+@keyframes body-bob-tired {
+  0%, 100% { transform: translateY(1px); }
+  50% { transform: translateY(0); }
+}
+
+/* ============================================== */
+/* ===== TAIL WAG (always, except sleeping) ===== */
+/* ============================================== */
+.state-walking .cow-tail,
+.state-eating .cow-tail,
+.state-tired .cow-tail {
+  animation: tail-wag 1.5s ease-in-out infinite;
+  transform-origin: 78px 28px;
+}
+@keyframes tail-wag {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(8deg); }
+}
+
+/* ============================================== */
+/* ===== PARTICLES ===== */
+/* ============================================== */
+.particle {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Zzz (sleeping) */
+.zzz {
+  top: -20px;
+  left: 60%;
+  font-family: var(--font, sans-serif);
+  font-weight: 700;
+  color: rgba(100, 150, 255, 0.8);
+  opacity: 0;
+  text-shadow: 0 0 6px rgba(100, 150, 255, 0.4);
+  animation: zzz-float 3s ease-out infinite;
+}
+@keyframes zzz-float {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4) rotate(-5deg); }
+  20% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(25px, -50px) scale(1.5) rotate(5deg); }
+}
+
+/* Munch (eating) */
+.munch {
+  top: 35px;
+  left: 0;
+  font-size: 0.7rem;
+  opacity: 0;
+  animation: munch-pop 1.2s ease-out infinite;
+}
+@keyframes munch-pop {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.3); }
+  30% { opacity: 1; transform: translate(-8px, -12px) scale(1); }
+  100% { opacity: 0; transform: translate(-18px, -25px) scale(0.4); }
+}
+
+/* Sweat (tired) */
+.sweat {
+  top: 5px;
+  right: 10px;
+  font-size: 0.6rem;
+  opacity: 0;
+  animation: sweat-drip 2.5s ease-in infinite;
+}
+@keyframes sweat-drip {
+  0%, 50% { opacity: 0; transform: translate(0, 0); }
+  60% { opacity: 0.8; transform: translate(2px, 3px); }
+  100% { opacity: 0; transform: translate(5px, 18px); }
+}
+
+/* ============================================== */
+/* ===== DARK MODE ===== */
+/* ============================================== */
+body.dark-mode .animal {
+  filter: drop-shadow(3px 5px 4px rgba(0,0,0,0.5));
+  opacity: 0.85;
+}
+body.dark-mode .cow-body,
+body.dark-mode .cow-head { fill: #e0e0e0 !important; }
+body.dark-mode .cow-body { stroke: #555 !important; }
+body.dark-mode .cow-head { stroke: #555 !important; }
+body.dark-mode .animal.state-sleeping .cow-svg {
+  filter: brightness(0.6);
+}
+
+/* ============================================== */
+/* ===== RESPONSIVE ===== */
+/* ============================================== */
+@media (max-width: 600px) {
+  .animal { transform: scale(0.75); transform-origin: bottom center; }
+}

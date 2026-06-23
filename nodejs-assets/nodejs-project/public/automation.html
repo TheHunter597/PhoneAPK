@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Automation — Obsidian Toolbox</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .auto-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        align-items: start;
+      }
+      @media (max-width: 800px) {
+        .auto-grid { grid-template-columns: 1fr; }
+      }
+      .auto-card { margin-top: 0; }
+      .auto-card .card-title { display: flex; align-items: center; gap: 0.5rem; }
+      .status-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: var(--surface-2);
+        border-radius: var(--radius-sm);
+        margin-bottom: 1rem;
+      }
+      .status-row .status-text { font-weight: 600; font-size: 0.9rem; }
+      .setting-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.6rem;
+        flex-wrap: wrap;
+      }
+      .setting-row label { min-width: 130px; font-weight: 500; margin: 0; font-size: 0.85rem; }
+      .setting-row input[type="number"] { width: 75px; }
+      .setting-row select { width: auto; min-width: 110px; }
+      .setting-row .checkbox-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+      .info-list { font-size: 0.85rem; color: var(--text-muted); }
+      .info-list ul { margin-left: 1.1rem; margin-top: 0.4rem; }
+      .info-list li { margin-bottom: 0.25rem; }
+      .live-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: var(--success-light);
+        color: var(--success);
+        padding: 0.2rem 0.6rem;
+        border-radius: var(--radius-full);
+        font-size: 0.72rem;
+        font-weight: 600;
+      }
+      .live-dot {
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: var(--success);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <a href="index.html" class="topbar-back">← Dashboard</a>
+      <span class="topbar-title">⚙️ Automation</span>
+      <span class="topbar-spacer"></span>
+      <span class="live-badge"><span class="live-dot"></span> Live preview active</span>
+    </div>
+
+    <div class="page page-wide">
+      <div class="page-header">
+        <p>
+          Control the vault watchers that process notes automatically. The
+          <strong>live-preview watcher</strong> is always on (left badge) — it
+          broadcasts file changes to the Note Viewer without modifying
+          anything. The processors below are optional and modify your notes.
+        </p>
+      </div>
+
+      <div class="auto-grid">
+        <!-- ============ Vault Watcher ============ -->
+        <div class="card auto-card">
+          <div class="card-title">👁️ Auto Image Compressor + Linker</div>
+          <div class="card-subtitle">
+            Watches your vault for .md changes — compresses PNGs to WebP/JPEG,
+            auto-links note titles, and fixes broken links.
+          </div>
+
+          <div class="status-row">
+            <span class="status-dot" id="vwDot"></span>
+            <span class="status-text" id="vwStatus">Loading…</span>
+          </div>
+
+          <div class="card-section">
+            <div class="setting-row">
+              <label for="qualityInput">Quality</label>
+              <input type="number" id="qualityInput" min="10" max="100" value="85" />
+              <span class="text-muted text-mono">%</span>
+            </div>
+            <div class="setting-row">
+              <label for="formatSelect">Format</label>
+              <select id="formatSelect">
+                <option value="webp">WebP</option>
+                <option value="jpeg">JPEG</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <label>Auto-Linker</label>
+              <span class="checkbox-wrap">
+                <input type="checkbox" id="linkerToggle" />
+                Wrap note titles in <code>[[ ]]</code>
+              </span>
+            </div>
+            <div class="setting-row">
+              <label>Fix broken links</label>
+              <span class="checkbox-wrap">
+                <input type="checkbox" id="fixBrokenLinksToggle" />
+                Repair or remove broken <code>[[links]]</code>
+              </span>
+            </div>
+            <div class="btn-row mt-2">
+              <button id="saveSettingsBtn" class="btn btn-secondary btn-sm">Apply settings</button>
+              <button id="refreshNotesBtn" class="btn btn-ghost btn-sm">🔄 Refresh note names</button>
+            </div>
+          </div>
+
+          <div class="card-section">
+            <div class="btn-row">
+              <button id="vwStartBtn" class="btn btn-primary">▶ Start</button>
+              <button id="vwStopBtn" class="btn btn-danger">⏹ Stop</button>
+            </div>
+          </div>
+
+          <div class="card-section info-list">
+            <strong>How it works:</strong>
+            <ul>
+              <li><strong>Image compression:</strong> finds <code>![[image.png]]</code>, compresses to WebP/JPEG, moves to <code>assets/</code>, deletes original.</li>
+              <li><strong>Auto-Linker:</strong> wraps words matching note titles in <code>[[Title]]</code>.</li>
+              <li><strong>Fix Broken Links:</strong> repairs broken <code>[[links]]</code> by basename lookup, or strips brackets.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ============ HTML Watcher ============ -->
+        <div class="card auto-card">
+          <div class="card-title">📄 HTML Watcher</div>
+          <div class="card-subtitle">
+            Converts <code>![[file.html]]</code> links into
+            <code>```html-embed</code> blocks and copies files to
+            <code>assets/</code>.
+          </div>
+
+          <div class="status-row">
+            <span class="status-dot" id="hwDot"></span>
+            <span class="status-text" id="hwStatus">Loading…</span>
+          </div>
+
+          <div class="card-section">
+            <div class="btn-row">
+              <button id="hwStartBtn" class="btn btn-primary">▶ Start</button>
+              <button id="hwStopBtn" class="btn btn-danger">⏹ Stop</button>
+            </div>
+          </div>
+
+          <div class="card-section info-list">
+            <strong>How it works:</strong>
+            <ul>
+              <li>Watches all <code>.md</code> files in your vault.</li>
+              <li>Finds <code>![[file.html]]</code> links.</li>
+              <li>Copies the HTML file to an <code>assets/</code> folder next to the note.</li>
+              <li>Replaces the link with a <code>```html-embed</code> code block pointing at the relative path.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        // ---------- Vault Watcher ----------
+        const vwDot = document.getElementById("vwDot");
+        const vwStatus = document.getElementById("vwStatus");
+        const vwStart = document.getElementById("vwStartBtn");
+        const vwStop = document.getElementById("vwStopBtn");
+        const qualityInput = document.getElementById("qualityInput");
+        const formatSelect = document.getElementById("formatSelect");
+        const linkerToggle = document.getElementById("linkerToggle");
+        const fixBrokenLinksToggle = document.getElementById("fixBrokenLinksToggle");
+        const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+        const refreshNotesBtn = document.getElementById("refreshNotesBtn");
+
+        async function fetchVWStatus() {
+          try {
+            const res = await fetch("/api/watcher/status");
+            const data = await res.json();
+            if (data.running) {
+              vwDot.className = "status-dot running";
+              vwStatus.textContent = `Running · Q${data.quality}% · ${data.format} · linker ${data.linkerEnabled ? "on" : "off"} · fix ${data.fixBrokenLinks ? "on" : "off"}`;
+              vwStart.disabled = true;
+              vwStop.disabled = false;
+            } else {
+              vwDot.className = "status-dot stopped";
+              vwStatus.textContent = "Stopped";
+              vwStart.disabled = false;
+              vwStop.disabled = true;
+            }
+            if (data.quality) qualityInput.value = data.quality;
+            if (data.format) formatSelect.value = data.format;
+            if (data.linkerEnabled !== undefined) linkerToggle.checked = data.linkerEnabled;
+            if (data.fixBrokenLinks !== undefined) fixBrokenLinksToggle.checked = data.fixBrokenLinks;
+          } catch (err) {
+            vwStatus.textContent = "❌ Error fetching status";
+          }
+        }
+
+        vwStart.addEventListener("click", async () => {
+          try { await fetch("/api/watcher/start", { method: "POST" }); await fetchVWStatus(); }
+          catch { alert("Failed to start watcher"); }
+        });
+        vwStop.addEventListener("click", async () => {
+          try { await fetch("/api/watcher/stop", { method: "POST" }); await fetchVWStatus(); }
+          catch { alert("Failed to stop watcher"); }
+        });
+        saveSettingsBtn.addEventListener("click", async () => {
+          try {
+            const res = await fetch("/api/watcher/settings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                quality: parseInt(qualityInput.value) || 85,
+                format: formatSelect.value,
+                linkerEnabled: linkerToggle.checked,
+                fixBrokenLinks: fixBrokenLinksToggle.checked,
+              }),
+            });
+            if (res.ok) { alert("Settings saved. Watcher restarted if it was running."); await fetchVWStatus(); }
+            else { alert("Failed to save settings"); }
+          } catch { alert("Error saving settings"); }
+        });
+        refreshNotesBtn.addEventListener("click", async () => {
+          refreshNotesBtn.disabled = true;
+          refreshNotesBtn.textContent = "⏳ Refreshing…";
+          try {
+            const res = await fetch("/api/refresh-notes");
+            const data = await res.json();
+            alert(data.success ? `✅ Refreshed ${data.count} note names.` : "❌ " + data.error);
+          } catch (err) { alert("Error: " + err.message); }
+          finally { refreshNotesBtn.disabled = false; refreshNotesBtn.textContent = "🔄 Refresh note names"; }
+        });
+
+        // ---------- HTML Watcher ----------
+        const hwDot = document.getElementById("hwDot");
+        const hwStatus = document.getElementById("hwStatus");
+        const hwStart = document.getElementById("hwStartBtn");
+        const hwStop = document.getElementById("hwStopBtn");
+
+        async function fetchHWStatus() {
+          try {
+            const res = await fetch("/api/htmlwatcher/status");
+            const data = await res.json();
+            if (data.running) {
+              hwDot.className = "status-dot running";
+              hwStatus.textContent = "Running";
+              hwStart.disabled = true;
+              hwStop.disabled = false;
+            } else {
+              hwDot.className = "status-dot stopped";
+              hwStatus.textContent = "Stopped";
+              hwStart.disabled = false;
+              hwStop.disabled = true;
+            }
+          } catch { hwStatus.textContent = "❌ Error fetching status"; }
+        }
+
+        hwStart.addEventListener("click", async () => {
+          try { await fetch("/api/htmlwatcher/start", { method: "POST" }); await fetchHWStatus(); }
+          catch { alert("Failed to start HTML watcher"); }
+        });
+        hwStop.addEventListener("click", async () => {
+          try { await fetch("/api/htmlwatcher/stop", { method: "POST" }); await fetchHWStatus(); }
+          catch { alert("Failed to stop HTML watcher"); }
+        });
+
+        // Initial load + polling
+        fetchVWStatus();
+        fetchHWStatus();
+        setInterval(() => { fetchVWStatus(); fetchHWStatus(); }, 10000);
+      })();
+    </script>
+  </body>
+</html>

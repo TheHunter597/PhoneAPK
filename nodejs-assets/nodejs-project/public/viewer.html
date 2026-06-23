@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Note Viewer</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:opsz@14..32&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&family=Lato:wght@400;700&family=Manrope:wght@400;700&family=Merriweather:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- mermaid + d3 are now lazy-loaded by markdown.js / graphView.js / mindMap.js
+         on first use, to keep initial page paint fast. -->
+    <link rel="stylesheet" href="viewerAssets/viewerStyles.css" />
+  </head>
+  <body>
+    <!-- MOBILE TOP BAR (hidden on desktop via CSS) -->
+    <div id="mobile-topbar">
+      <button class="mobile-icon-btn" id="mobile-sidebar-btn" title="Explorer" aria-label="Toggle explorer">
+        <i class="fas fa-bars"></i>
+      </button>
+      <span id="mobile-title">Notes</span>
+      <button class="mobile-icon-btn" id="mobile-edit-btn" title="Edit note" aria-label="Edit note">
+        <i class="fas fa-pencil-alt"></i>
+      </button>
+      <button class="mobile-icon-btn" id="mobile-settings-btn" title="Settings" aria-label="Settings">
+        <i class="fas fa-cog"></i>
+      </button>
+      <button class="mobile-icon-btn" id="mobile-outline-btn" title="Outline" aria-label="Toggle outline">
+        <i class="fas fa-list-ul"></i>
+      </button>
+    </div>
+
+    <!-- MOBILE BACKDROP (tap to close drawers) -->
+    <div id="mobile-backdrop"></div>
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <div id="sidebar-header">
+        <h2>📚 Notes</h2>
+        <a href="index.html" title="Back to Dashboard" style="font-size:0.85rem;color:#aaa;text-decoration:none;margin-right:0.2rem;">🏠</a>
+        <a href="vault-settings.html" title="Vault Settings" style="font-size:0.85rem;color:#aaa;text-decoration:none;margin-right:0.4rem;">⚙️</a>
+        <span class="badge" id="noteCount">0</span>
+      </div>
+      <div id="search">
+        <input type="text" id="searchInput" placeholder="Search notes..." />
+        <select
+          id="searchModeToggle"
+          style="
+            width: 100%;
+            margin-top: 0.3rem;
+            padding: 0.3rem;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #ddd;
+            border-radius: 4px;
+            outline: none;
+          "
+        >
+          <option value="both">🔍 All (Notes + Folders)</option>
+          <option value="notes">📄 Notes Only</option>
+          <option value="folders">📁 Folders Only</option>
+        </select>
+      </div>
+      <div id="tree-container">
+        <ul id="tree-list">
+          <li class="no-results">Loading notes...</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RESIZE HANDLE -->
+    <div id="resize-handle"></div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main">
+      <!-- GEAR + EDIT buttons now live in the outline rail (right side) -->
+
+      <!-- SETTINGS PANEL -->
+      <div id="settings-panel" class="hidden">
+        <div class="settings-row">
+          <label for="darkModeToggle">🌙 Dark Mode</label>
+          <input type="checkbox" id="darkModeToggle" />
+        </div>
+        <div class="settings-row">
+          <label for="imgBrightnessSlider">🖼️ Image Brightness</label>
+          <input
+            type="range"
+            id="imgBrightnessSlider"
+            min="0.3"
+            max="1.0"
+            step="0.05"
+            value="0.85"
+          />
+          <span id="imgBrightnessLabel">85%</span>
+        </div>
+        <div class="settings-row">
+          <label for="widthSlider">📐 Content Width</label>
+          <input type="range" id="widthSlider" min="40" max="100" value="75" />
+          <span id="widthLabel">75%</span>
+        </div>
+        <div class="settings-row">
+          <label for="embedWidthSlider">📏 Embed Width</label>
+          <input
+            type="range"
+            id="embedWidthSlider"
+            min="50"
+            max="100"
+            value="100"
+          />
+          <span id="embedWidthLabel">100%</span>
+        </div>
+        <div class="settings-row">
+          <label for="embedHeightSlider">📏 Embed Height</label>
+          <input
+            type="range"
+            id="embedHeightSlider"
+            min="200"
+            max="800"
+            step="50"
+            value="500"
+          />
+          <span id="embedHeightLabel">500px</span>
+        </div>
+        <div class="settings-row">
+          <label for="fontFamilySelect">🔤 Font Family</label>
+          <select id="fontFamilySelect">
+            <option value="'Roboto', sans-serif">Roboto (default)</option>
+            <option value="'Inter', sans-serif">Inter</option>
+            <option value="'Manrope', sans-serif">Manrope</option>
+            <option value="'Lato', sans-serif">Lato</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Merriweather', serif">Merriweather</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <label for="fontWeightSlider">💪 Font Weight</label>
+          <input
+            type="range"
+            id="fontWeightSlider"
+            min="300"
+            max="900"
+            step="100"
+            value="400"
+          />
+          <span id="fontWeightLabel">400</span>
+        </div>
+        <div class="settings-row">
+          <label for="fontSizeSlider">🔠 Font Size</label>
+          <input
+            type="range"
+            id="fontSizeSlider"
+            min="12"
+            max="24"
+            step="1"
+            value="16"
+          />
+          <span id="fontSizeLabel">16px</span>
+        </div>
+        <div id="shortcuts-section">
+          <h4>⌨️ Keyboard Shortcuts</h4>
+          <div id="shortcuts-list"></div>
+        </div>
+      </div>
+
+      <!-- NOTE CONTENT -->
+      <div id="content" class="note-content">
+        <p class="empty-state">Select a note from the sidebar</p>
+      </div>
+
+      <!-- TABS (bottom of main) -->
+      <div id="tabs-container"></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.1/turndown.min.js"></script>
+    <script type="module" src="viewerAssets/app.js"></script>
+    <!-- New feature modules — auto-initialize via DOMContentLoaded, so app.js
+         doesn't need to import them. -->
+    <script type="module" src="viewerAssets/js/commandPalette.js"></script>
+    <script type="module" src="viewerAssets/js/backlinks.js"></script>
+    <script type="module" src="viewerAssets/js/exportZip.js"></script>
+    <script type="module" src="viewerAssets/js/modal.js"></script>
+    <script type="module" src="viewerAssets/js/studyTracker.js"></script>
+    <script type="module" src="viewerAssets/js/versionHistory.js"></script>
+    <script type="module" src="viewerAssets/js/mobile.js"></script>
+  </body>
+</html>

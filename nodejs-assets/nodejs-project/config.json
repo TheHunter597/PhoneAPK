@@ -1,0 +1,15 @@
+{
+  "vaultPath": ".",
+  "backupDestination": "./backup",
+  "backupTimezone": "Africa/Cairo",
+  "watcher": {
+    "enabled": false,
+    "quality": 85,
+    "format": "webp",
+    "linkerEnabled": false,
+    "fixBrokenLinks": false
+  },
+  "htmlWatcher": {
+    "enabled": false
+  }
+}

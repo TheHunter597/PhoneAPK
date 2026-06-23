@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Note Linker — Obsidian Toolbox</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .output-area {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.85rem;
+        min-height: 140px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: var(--font-mono);
+        font-size: 0.88rem;
+        line-height: 1.6;
+        overflow-y: auto;
+        max-height: 360px;
+      }
+      .status-line {
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .status-line.ok { color: var(--success); }
+      .status-line.warn { color: var(--danger); }
+      .status-line.info { color: var(--info); }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <a href="index.html" class="topbar-back">← Dashboard</a>
+      <span class="topbar-title">🔗 Note Linker</span>
+    </div>
+
+    <div class="page">
+      <div class="page-header">
+        <p>
+          Paste text below — the linker fetches your vault's note names and
+          automatically wraps any occurrence of a note title in
+          <code>[[&nbsp;]]</code>. Existing links and paths are left alone.
+        </p>
+      </div>
+
+      <div id="autoLoadStatus" class="status-line info">
+        ℹ️ Click "Convert" to fetch the latest notes from your vault.
+      </div>
+
+      <div class="card">
+        <div class="card-title">Note names</div>
+        <div class="card-subtitle">
+          Optional manual override. By default the server provides them
+          automatically — paste your own list only if you want to override.
+        </div>
+        <div class="form-row">
+          <label for="namesInput">Manual list (one name per line)</label>
+          <textarea id="namesInput" placeholder="Leave empty to auto-fetch from vault…"></textarea>
+        </div>
+        <div class="form-inline">
+          <input type="file" id="fileInput" accept=".txt" />
+          <button id="refreshBtn" class="btn btn-secondary btn-sm">🔄 Fetch from vault</button>
+          <span id="namesStatus" class="status-line info" style="margin:0;"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Text to transform</div>
+        <div class="form-row">
+          <textarea id="textInput" placeholder="Paste your notes here…" style="min-height:140px;"></textarea>
+        </div>
+        <div class="btn-row">
+          <button id="convertBtn" class="btn btn-primary">🔗 Convert</button>
+          <button id="copyBtn" class="btn btn-secondary">📋 Copy output</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Transformed text</div>
+        <div id="outputArea" class="output-area mt-2"></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const namesInput = document.getElementById("namesInput");
+        const fileInput = document.getElementById("fileInput");
+        const textInput = document.getElementById("textInput");
+        const convertBtn = document.getElementById("convertBtn");
+        const copyBtn = document.getElementById("copyBtn");
+        const refreshBtn = document.getElementById("refreshBtn");
+        const outputArea = document.getElementById("outputArea");
+        const namesStatus = document.getElementById("namesStatus");
+        const autoLoadStatus = document.getElementById("autoLoadStatus");
+
+        function escapeRegex(str) { return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+        function buildLinkifier(noteNamesArray) {
+          const names = noteNamesArray.map((s) => s.trim()).filter((s) => s.length > 0);
+          if (names.length === 0) return null;
+          const nameMap = new Map();
+          const escapedNames = [];
+          for (const name of names) {
+            const lower = name.toLowerCase();
+            if (!nameMap.has(lower)) nameMap.set(lower, name);
+            escapedNames.push(escapeRegex(name));
+          }
+          // Avoid linking inside existing [[ ]] or path segments — mirrors scripts/linker.js
+          const pattern = "(?<!\\[\\[)(?<![\\\\/])\\b(" + escapedNames.join("|") + ")\\b(?!\\]\\])(?![\\\\/])";
+          const regex = new RegExp(pattern, "gi");
+          return { regex, nameMap };
+        }
+
+        function transformText(text, linkifier) {
+          if (!linkifier) return text;
+          const { regex, nameMap } = linkifier;
+          return text.replace(regex, (match) => {
+            const exact = nameMap.get(match.toLowerCase()) || match;
+            return "[[" + exact + "]]";
+          });
+        }
+
+        function updateStatus(count) {
+          if (count === 0) {
+            namesStatus.textContent = "⚠️ No note names loaded";
+            namesStatus.className = "status-line warn";
+          } else {
+            namesStatus.textContent = `✅ ${count} note(s)`;
+            namesStatus.className = "status-line ok";
+          }
+        }
+
+        function loadNamesFromString(str) {
+          const names = str.split("\n").map((s) => s.trim()).filter((s) => s.length > 0);
+          window._noteNames = names;
+          window._linkifier = buildLinkifier(names);
+          updateStatus(names.length);
+          return names;
+        }
+
+        async function fetchNotesFromServer() {
+          autoLoadStatus.textContent = "⏳ Fetching note names from server…";
+          autoLoadStatus.className = "status-line info";
+          convertBtn.disabled = true;
+          refreshBtn.disabled = true;
+          try {
+            const response = await fetch("/api/notes");
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              throw new Error(errData.error || `HTTP ${response.status}`);
+            }
+            const data = await response.json();
+            if (!data.success) throw new Error(data.error || "Unknown error");
+            const names = data.names;
+            namesInput.value = names.join("\n");
+            window._noteNames = names;
+            window._linkifier = buildLinkifier(names);
+            updateStatus(names.length);
+            autoLoadStatus.textContent = `✅ Loaded ${names.length} notes from vault.`;
+            autoLoadStatus.className = "status-line ok";
+            return names;
+          } catch (err) {
+            autoLoadStatus.textContent = `❌ Failed: ${err.message}`;
+            autoLoadStatus.className = "status-line warn";
+            if (namesInput.value.trim()) {
+              loadNamesFromString(namesInput.value);
+              autoLoadStatus.textContent += " (using manual names)";
+            } else {
+              updateStatus(0);
+            }
+            throw err;
+          } finally {
+            convertBtn.disabled = false;
+            refreshBtn.disabled = false;
+          }
+        }
+
+        async function handleConvert() {
+          const text = textInput.value;
+          if (!text.trim()) {
+            outputArea.textContent = "Please paste some text to transform.";
+            return;
+          }
+          try { await fetchNotesFromServer(); }
+          catch {
+            if (!window._noteNames || window._noteNames.length === 0) {
+              outputArea.textContent = "Could not load note names. Check config.json or paste names manually.";
+              return;
+            }
+          }
+          const linkifier = window._linkifier;
+          if (!linkifier || !window._noteNames.length) {
+            outputArea.textContent = "No note names available.";
+            return;
+          }
+          outputArea.textContent = transformText(text, linkifier);
+        }
+
+        convertBtn.addEventListener("click", handleConvert);
+        refreshBtn.addEventListener("click", fetchNotesFromServer);
+        namesInput.addEventListener("input", () => {
+          loadNamesFromString(namesInput.value);
+          fileInput.value = "";
+          autoLoadStatus.textContent = "✏️ Using manually pasted names.";
+          autoLoadStatus.className = "status-line info";
+        });
+        fileInput.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            namesInput.value = ev.target.result;
+            loadNamesFromString(ev.target.result);
+            autoLoadStatus.textContent = "📄 Loaded from uploaded file.";
+            autoLoadStatus.className = "status-line info";
+          };
+          reader.readAsText(file, "UTF-8");
+        });
+        copyBtn.addEventListener("click", () => {
+          const text = outputArea.textContent;
+          if (!text) return;
+          navigator.clipboard.writeText(text).then(() => {
+            copyBtn.textContent = "✅ Copied!";
+            setTimeout(() => { copyBtn.textContent = "📋 Copy output"; }, 1500);
+          }).catch(() => {
+            const range = document.createRange();
+            range.selectNode(outputArea);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand("copy");
+            copyBtn.textContent = "✅ Copied!";
+            setTimeout(() => { copyBtn.textContent = "📋 Copy output"; }, 1500);
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

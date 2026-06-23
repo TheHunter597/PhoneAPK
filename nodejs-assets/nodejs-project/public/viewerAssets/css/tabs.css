@@ -1,0 +1,125 @@
+/* ============================================== */
+/* ===== HORIZONTAL TABS (bottom of main) ===== */
+/* ============================================== */
+#tabs-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem 0.5rem;
+  background: #202020;
+  border-top: 1px solid #ffffff1a;
+  flex-shrink: 0;
+  min-height: 2.2rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  width: 100%;
+  margin: 0;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem 0.2rem 0.8rem;
+  background: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #444;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tab-item:hover {
+  background: #e8e8e8;
+}
+.tab-item.active {
+  background: #f5f5f5;
+  border-color: #888 #888 #fff #888;
+  color: #1e1e1e;
+  font-weight: 500;
+  border-bottom: 2px solid #2d7d46;
+}
+.tab-item .tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tab-close {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0 0.1rem;
+  border-radius: 3px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  line-height: 1;
+}
+.tab-close:hover {
+  background: #d0d0d0;
+  color: #c0392b;
+}
+.tab-back-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  transition:
+    background 0.2s,
+    color 0.2s;
+  margin-right: 0.2rem;
+}
+.tab-back-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+#tabs-container .empty-tabs {
+  padding: 0.2rem 0.5rem;
+  color: #aaa;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Dark mode */
+body.dark-mode #tabs-container {
+  background: #1e1e1e;
+  border-top-color: #444;
+}
+body.dark-mode .tab-item {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #bbb;
+}
+body.dark-mode .tab-item.active {
+  background: #1e1e1e;
+  border-color: #555 #555 #1e1e1e #555;
+  color: #eee;
+  border-bottom-color: #4caf84;
+}
+body.dark-mode .tab-item:hover {
+  background: #333;
+}
+body.dark-mode .tab-close:hover {
+  background: #444;
+  color: #e74c3c;
+}
+body.dark-mode .tab-back-btn {
+  color: #aaa;
+}
+body.dark-mode .tab-back-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}

@@ -1,0 +1,278 @@
+/* ============================================== */
+/* ===== OUTLINE RAIL (right side) ===== */
+/* ============================================== */
+
+#outline-rail {
+  flex-shrink: 0;
+  height: 100vh;
+  background: #161616;
+  color: #adadad;
+  border-left: 1px solid #ffffff1a;
+  display: flex;
+  flex-direction: column;
+  /* Collapsed: narrow 16px strip with tiny icons */
+  width: 16px;
+  overflow: hidden;
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 20;
+}
+
+/* Expand on hover (only when not fully-hidden) */
+#outline-rail:not(.fully-hidden):hover {
+  width: 260px;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+}
+
+/* PINNED — stays open regardless of hover (edit mode or settings active) */
+#outline-rail.pinned {
+  width: 260px;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+}
+#outline-rail.pinned:hover {
+  width: 260px; /* no change — already open */
+}
+
+/* FULLY HIDDEN — collapse button was clicked; rail disappears entirely */
+#outline-rail.fully-hidden {
+  width: 0 !important;
+  border-left: none;
+  box-shadow: none !important;
+}
+
+/* ---- Header (contains gear + pencil + collapse button) ---- */
+.outline-rail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #ffffff1a;
+  flex-shrink: 0;
+  /* When collapsed (16px), stack icons vertically and center them */
+  flex-direction: column;
+  justify-content: center;
+}
+/* When expanded (hover or pinned), switch to horizontal row */
+#outline-rail:hover .outline-rail-header,
+#outline-rail.pinned .outline-rail-header {
+  flex-direction: row;
+  justify-content: flex-start;
+  padding: 0.7rem 0.8rem;
+}
+
+/* ---- Icon buttons ---- */
+.outline-icon-btn {
+  background: transparent;
+  border: none;
+  color: #747474;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s, width 0.22s, height 0.22s, font-size 0.22s;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* Collapsed: tiny icons that fit in 16px */
+  width: 14px;
+  height: 14px;
+  font-size: 0.55rem;
+  padding: 0;
+}
+/* Expanded: full-size icons */
+#outline-rail:hover .outline-icon-btn,
+#outline-rail.pinned .outline-icon-btn {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.95rem;
+  padding: 0.45rem;
+  border-radius: 6px;
+}
+.outline-icon-btn:hover {
+  background: #ffffff0d;
+  color: #f8f8f8;
+}
+.outline-icon-btn:focus-visible {
+  outline: 2px solid #6c9bcf;
+  outline-offset: 1px;
+}
+
+/* ---- Collapse button (chevron-right) ---- */
+/* Only visible when expanded — it's meaningless when collapsed */
+.outline-collapse-btn {
+  margin-left: auto !important;
+  color: #666 !important;
+}
+#outline-rail:not(:hover):not(.pinned) .outline-collapse-btn {
+  display: none;
+}
+.outline-collapse-btn:hover {
+  color: #fff !important;
+  background: #ffffff0d;
+}
+
+/* ---- Label ---- */
+.outline-rail-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #747474;
+  margin-left: 0.2rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s 0.05s;
+  display: none; /* hidden when collapsed */
+}
+#outline-rail:hover .outline-rail-label,
+#outline-rail.pinned .outline-rail-label {
+  opacity: 1;
+  display: inline;
+}
+
+/* ---- Divider ---- */
+.outline-rail-divider {
+  height: 1px;
+  background: #ffffff1a;
+  flex-shrink: 0;
+}
+
+/* ---- Body (outline list) — hidden when collapsed ---- */
+.outline-rail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.4rem 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s 0.05s;
+}
+#outline-rail:hover .outline-rail-body,
+#outline-rail.pinned .outline-rail-body {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Custom scrollbar */
+.outline-rail-body::-webkit-scrollbar { width: 5px; }
+.outline-rail-body::-webkit-scrollbar-track { background: transparent; }
+.outline-rail-body::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+.outline-rail-body::-webkit-scrollbar-thumb:hover { background: #747474; }
+
+/* ---- Outline list ---- */
+.outline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.outline-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #747474;
+  border-left: 2px solid transparent;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.outline-item:hover {
+  background: #ffffff0d;
+  color: #f8f8f8;
+}
+.outline-item.active {
+  color: #f8f8f8;
+  background: #ffffff0d;
+  border-left-color: #4099ff;
+  font-weight: 500;
+}
+
+/* Small colored marker per heading level */
+.outline-marker {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #747474;
+}
+.outline-marker-1 { background: #f5a623; }
+.outline-marker-2 { background: #6c9bcf; }
+.outline-marker-3 { background: #4caf84; }
+.outline-marker-4 { background: #b07cf6; }
+.outline-marker-5 { background: #e08282; }
+.outline-marker-6 { background: #7f8c8d; }
+
+.outline-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outline-empty {
+  padding: 1rem 0.8rem;
+  font-size: 0.8rem;
+  color: #747474;
+  font-style: italic;
+  text-align: center;
+}
+
+/* ---- Restore tab (floating button when rail is fully hidden) ---- */
+#outline-show-btn {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  min-height: 60px;
+  background: #161616;
+  color: #747474;
+  border: none;
+  border-left: 1px solid #ffffff1a;
+  border-radius: 0;
+  cursor: pointer;
+  z-index: 19;
+  padding: 0.8rem 0;
+  font-size: 0.6rem;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  writing-mode: vertical-lr;
+}
+#outline-show-btn:hover {
+  background: #ffffff0d;
+  color: #f8f8f8;
+}
+/* Show the restore tab only when the rail is fully hidden */
+body:has(#outline-rail.fully-hidden) #outline-show-btn {
+  display: flex;
+}
+
+/* ---- Dark mode (warm stone neutrals — see dark-mode.css tokens) ---- */
+body.dark-mode #outline-rail {
+  background: var(--dk-surface, #0c0a09);
+  border-left-color: var(--dk-line, #292524);
+}
+body.dark-mode #outline-rail:hover,
+body.dark-mode #outline-rail.pinned {
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.6);
+}
+body.dark-mode .outline-icon-btn { color: var(--dk-muted, #a8a29e); }
+body.dark-mode .outline-icon-btn:hover { background: rgba(255, 255, 255, 0.06); color: var(--dk-ink, #f5f5f4); }
+body.dark-mode .outline-item { color: var(--dk-muted, #a8a29e); }
+body.dark-mode .outline-item:hover { background: rgba(255, 255, 255, 0.06); color: var(--dk-ink-soft, #d6d3d1); }
+body.dark-mode .outline-item.active { background: rgba(255, 255, 255, 0.06); color: var(--dk-ink, #f5f5f4); border-left-color: var(--dk-accent, #4099ff); }
+body.dark-mode .outline-rail-divider { background: var(--dk-line, #292524); }
+body.dark-mode .outline-rail-label { color: var(--dk-muted, #a8a29e); }
+body.dark-mode #outline-show-btn { background: var(--dk-surface, #0c0a09); border-left-color: var(--dk-line, #292524); color: var(--dk-muted, #a8a29e); }
+body.dark-mode #outline-show-btn:hover { background: rgba(255, 255, 255, 0.06); color: var(--dk-ink-soft, #d6d3d1); }
+
+/* ---- Responsive: on very narrow screens, hide the rail entirely ---- */
+@media (max-width: 600px) {
+  #outline-rail { display: none; }
+  #outline-show-btn { display: none !important; }
+}

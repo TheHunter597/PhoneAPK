@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Broken Links — Obsidian Toolbox</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .note-entry {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .note-info { flex: 1; min-width: 240px; }
+      .note-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.4rem; word-break: break-word; }
+      .broken-links { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+      .broken-link {
+        background: var(--danger-light);
+        color: var(--danger);
+        padding: 0.2rem 0.55rem;
+        border-radius: var(--radius-xs);
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        word-break: break-all;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-subtle);
+      }
+      .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <a href="index.html" class="topbar-back">← Dashboard</a>
+      <span class="topbar-title">🩹 Broken Links</span>
+    </div>
+
+    <div class="page page-wide">
+      <div class="page-header">
+        <p>
+          Notes containing <code>[[links]]</code> that point to non-existent
+          notes. Click <strong>Fix</strong> to auto-repair (resolve by basename,
+          or strip brackets if unfixable).
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="form-inline">
+          <input type="search" id="searchBox" placeholder="Search notes or broken links…" style="flex:1; min-width:200px;" />
+          <button id="refreshBtn" class="btn btn-primary">🔄 Refresh</button>
+          <span id="statusText" class="text-muted" style="font-size:0.85rem;"></span>
+        </div>
+      </div>
+
+      <div id="results" class="mt-2"></div>
+    </div>
+
+    <script>
+      (function () {
+        const resultsDiv = document.getElementById("results");
+        const refreshBtn = document.getElementById("refreshBtn");
+        const statusText = document.getElementById("statusText");
+        const searchBox = document.getElementById("searchBox");
+
+        function escapeHtml(str) {
+          const div = document.createElement("div");
+          div.textContent = String(str);
+          return div.innerHTML;
+        }
+
+        let allData = {};
+
+        async function loadBrokenLinks(showLoading = true) {
+          if (showLoading) {
+            resultsDiv.innerHTML = '<div class="empty-state"><div class="icon">⏳</div>Loading…</div>';
+            statusText.textContent = "Loading…";
+          }
+          refreshBtn.disabled = true;
+          try {
+            const res = await fetch("/api/broken-links");
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+            allData = data.data;
+            renderResults(allData);
+          } catch (err) {
+            resultsDiv.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>Error: ${escapeHtml(err.message)}</div>`;
+            statusText.textContent = "Error loading data.";
+          } finally {
+            refreshBtn.disabled = false;
+          }
+        }
+
+        function renderResults(brokenData) {
+          const notePaths = Object.keys(brokenData);
+          if (notePaths.length === 0) {
+            resultsDiv.innerHTML = '<div class="empty-state"><div class="icon">🎉</div>No broken links found!<br>All links are valid.</div>';
+            statusText.textContent = "All links are valid.";
+            return;
+          }
+          let html = "";
+          for (const notePath of notePaths) {
+            const links = brokenData[notePath];
+            html += `
+              <div class="card note-entry" data-path="${escapeHtml(notePath)}">
+                <div class="note-info">
+                  <div class="note-title">📄 ${escapeHtml(notePath)}</div>
+                  <div class="broken-links">
+                    ${links.map((link) => `<span class="broken-link">[[${escapeHtml(link)}]]</span>`).join("")}
+                  </div>
+                </div>
+                <div>
+                  <button class="btn btn-danger btn-sm fix-btn" data-path="${escapeHtml(notePath)}">✖ Fix</button>
+                </div>
+              </div>
+            `;
+          }
+          resultsDiv.innerHTML = html;
+          statusText.textContent = `Found ${notePaths.length} note(s) with broken links.`;
+
+          resultsDiv.querySelectorAll(".fix-btn").forEach((btn) => {
+            btn.addEventListener("click", async function () {
+              const notePath = this.dataset.path;
+              if (!confirm(`Fix broken links in "${notePath}"?`)) return;
+              this.disabled = true;
+              this.textContent = "Fixing…";
+              try {
+                const res = await fetch("/api/broken-links/fix", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ notePath }),
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                await loadBrokenLinks(false);
+              } catch (err) {
+                alert("Error: " + err.message);
+                this.disabled = false;
+                this.textContent = "✖ Fix";
+              }
+            });
+          });
+
+          applySearch();
+        }
+
+        function applySearch() {
+          const query = searchBox.value.toLowerCase().trim();
+          const entries = document.querySelectorAll(".note-entry");
+          entries.forEach((entry) => {
+            const title = entry.querySelector(".note-title")?.textContent?.toLowerCase() || "";
+            const links = entry.querySelector(".broken-links")?.textContent?.toLowerCase() || "";
+            const match = title.includes(query) || links.includes(query);
+            entry.style.display = match ? "" : "none";
+          });
+        }
+
+        searchBox.addEventListener("input", applySearch);
+        refreshBtn.addEventListener("click", () => loadBrokenLinks(true));
+        loadBrokenLinks();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "six_hour": {
+    "lastRun": "2026-06-19T23:32:44.580Z",
+    "lastSuccess": "2026-06-19T23:32:44.580Z",
+    "success": true,
+    "lastError": null,
+    "durationMs": 25713,
+    "fileCount": 1540,
+    "retryCount": 0,
+    "nextRetryAt": null
+  },
+  "daily": {
+    "lastRun": "2026-06-19T01:30:21.442Z",
+    "lastSuccess": "2026-06-19T01:30:21.442Z",
+    "success": true,
+    "lastError": null,
+    "durationMs": 43188,
+    "fileCount": 1537,
+    "retryCount": 0,
+    "nextRetryAt": null
+  },
+  "three_day": {
+    "lastRun": "2026-06-19T23:33:18.950Z",
+    "lastSuccess": "2026-06-19T23:33:18.950Z",
+    "success": true,
+    "lastError": null,
+    "durationMs": 34365,
+    "fileCount": 1540,
+    "retryCount": 0,
+    "nextRetryAt": null
+  },
+  "weekly": {
+    "lastRun": "2026-06-16T13:27:41.505Z",
+    "lastSuccess": "2026-06-16T13:27:41.505Z",
+    "success": true,
+    "lastError": null,
+    "durationMs": 0,
+    "fileCount": 0,
+    "retryCount": 0,
+    "nextRetryAt": null
+  }
+}

@@ -1,0 +1,440 @@
+/* ============================================== */
+/* ===== MARKDOWN TEXTAREA EDITOR ===== */
+/* ============================================== */
+
+/* The editor content (#editableNote) inherits the same max-width and centering
+   as .note-content in view mode. No overrides needed — they share the same
+   class "note-content" so the markdown.css rules apply equally. */
+
+/* ---- Content width consistency (T9) ---- */
+/* #content and #content.editing must have the SAME width behavior so the
+   content area doesn't visibly change width when toggling between view and
+   edit mode. The actual content max-width is controlled by the widthSlider
+   in settings.js (which sets .note-content / .editable-content max-width
+   inline). We explicitly neutralize any width/max-width on #content.editing
+   so it matches #content (which has no width rule by default).
+   body.focus-mode #content { max-width: 800px } still wins in focus mode
+   due to higher specificity. */
+#content,
+#content.editing {
+  width: 100%;
+  max-width: none;
+}
+
+.editable-content {
+  width: 100%;
+  min-height: 300px;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  outline: none;
+  background: transparent;
+  border: none;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body.dark-mode .editable-content {
+  color: #d8d8d8;
+}
+
+/* ---- Editable note title (rename input) ---- */
+/* Styled to match the H1 from view mode: full-width, left-aligned.
+   The width is controlled by the parent #content (and the widthSlider via
+   the .editable-content max-width inline style) — do NOT hardcode a
+   max-width here or the title will be misaligned with the body. */
+.edit-note-title {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 1.5rem 0 0.8rem 0;
+  padding: 0 0 0.3rem 0;
+  font-family: var(--font, 'Inter', sans-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e1e1e;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #eaeaea;
+  outline: none;
+  transition: border-color 0.15s;
+  line-height: 1.2;
+  text-align: left;
+}
+.edit-note-title:focus {
+  border-bottom-color: #2d7d46;
+}
+body.dark-mode .edit-note-title {
+  color: #f8f8f8;
+  border-bottom-color: #ffffff1a;
+}
+body.dark-mode .edit-note-title:focus {
+  border-bottom-color: #4099ff;
+}
+
+/* ---- Edit actions (Save / Cancel buttons) ---- */
+/* Full-width row to match the title and editable content. */
+.edit-actions {
+  width: 100%;
+  max-width: none;
+  margin: 1rem 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+/* ---- Markdown textarea ---- */
+.markdown-textarea {
+  display: block;
+  width: 100%;
+  min-height: 400px;
+  padding: 1rem;
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #1e1e1e;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+  tab-size: 2;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.markdown-textarea:focus {
+  border-color: #2d7d46;
+  box-shadow: 0 0 0 3px rgba(45, 125, 70, 0.12);
+}
+body.dark-mode .markdown-textarea {
+  color: #d8d8d8;
+  background: #1a1a1a;
+  border-color: #444;
+}
+body.dark-mode .markdown-textarea:focus {
+  border-color: #4caf84;
+  box-shadow: 0 0 0 3px rgba(76, 175, 132, 0.15);
+}
+
+/* Keep all markdown styles inside the editable content */
+.editable-content h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 2rem 0 0.8rem 0;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid #eaeaea;
+}
+.editable-content h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 1.8rem 0 0.6rem 0;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid #eaeaea;
+}
+.editable-content h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.4rem 0;
+}
+.editable-content h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.2rem 0 0.3rem 0;
+}
+.editable-content h5,
+.editable-content h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1rem 0 0.2rem 0;
+}
+.editable-content p {
+  margin: 0.8rem 0;
+}
+.editable-content ul,
+.editable-content ol {
+  margin: 0.6rem 0 0.6rem 1.5rem;
+  padding-left: 0.5rem;
+}
+.editable-content li {
+  margin: 0.2rem 0;
+}
+.editable-content blockquote {
+  margin: 1rem 0;
+  padding: 0.6rem 1.2rem;
+  border-left: 4px solid #d0d0d0;
+  background: #f0f0f0;
+  border-radius: 0 4px 4px 0;
+  color: #444;
+  font-style: italic;
+}
+.editable-content code {
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  font-size: 0.85em;
+  background: #f0f0f0;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  color: #c7254e;
+  border: 1px solid #e8e8e8;
+}
+.editable-content pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1.2rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 1.2rem 0;
+}
+.editable-content pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: normal;
+}
+.editable-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+.editable-content th,
+.editable-content td {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+.editable-content th {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+.editable-content tr:nth-child(even) {
+  background: #f9f9f9;
+}
+.editable-content a {
+  color: #0366d6;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.editable-content a:hover {
+  border-bottom-color: #0366d6;
+}
+.editable-content img {
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin: 0.8rem 0;
+}
+.editable-content hr {
+  border: none;
+  border-top: 2px solid #eaeaea;
+  margin: 2rem 0;
+}
+.editable-content .task-list-item {
+  list-style: none;
+  margin-left: -1.2rem;
+}
+.editable-content .callout {
+  margin: 1rem 0;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  border-left: 4px solid #aaa;
+  background: #f4f4f4;
+}
+.editable-content .callout.callout-info {
+  border-color: #2d7d46;
+  background: #eaf4ea;
+}
+.editable-content .callout.callout-warning {
+  border-color: #d4880f;
+  background: #faf0e0;
+}
+.editable-content .callout.callout-danger {
+  border-color: #c0392b;
+  background: #f5e6e6;
+}
+.editable-content .callout.callout-tip {
+  border-color: #4a90d9;
+  background: #e6edf5;
+}
+.editable-content .callout summary {
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.2rem 0;
+  user-select: none;
+}
+.editable-content .callout summary:hover {
+  color: #0366d6;
+}
+.editable-content .callout .callout-content {
+  padding-top: 0.3rem;
+}
+.editable-content .html-embed-container {
+  margin: 1rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  background: #fff;
+}
+.editable-content .html-embed-iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+  display: block;
+}
+
+/* Dark mode overrides for editable content */
+body.dark-mode .editable-content h1 {
+  color: #f0f0f0;
+  border-bottom-color: #333;
+}
+body.dark-mode .editable-content h2 {
+  color: #ececec;
+  border-bottom-color: #333;
+}
+body.dark-mode .editable-content h3 {
+  color: #e8e8e8;
+}
+body.dark-mode .editable-content h4,
+body.dark-mode .editable-content h5,
+body.dark-mode .editable-content h6 {
+  color: #e0e0e0;
+}
+body.dark-mode .editable-content blockquote {
+  background: #1e1e1e;
+  border-left-color: #4a4a4a;
+  color: #c8c8c8;
+}
+body.dark-mode .editable-content code {
+  background: #2a2a2a;
+  color: #f08a8a;
+  border-color: #3a3a3a;
+}
+body.dark-mode .editable-content pre {
+  background: #0d0d0d;
+  color: #d4d4d4;
+}
+body.dark-mode .editable-content table th {
+  background: #2a2a2a;
+  color: #ddd;
+}
+body.dark-mode .editable-content table td {
+  border-color: #3a3a3a;
+  color: #ccc;
+}
+body.dark-mode .editable-content table tr:nth-child(even) {
+  background: #1a1a1a;
+}
+body.dark-mode .editable-content a {
+  color: #58a6ff;
+}
+body.dark-mode .editable-content a:hover {
+  border-bottom-color: #79b8ff;
+  text-decoration: underline;
+}
+body.dark-mode .editable-content .callout {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-left-color: #555 !important;
+  color: #d0d0d0 !important;
+}
+body.dark-mode .editable-content .callout-info {
+  border-left-color: #4caf84 !important;
+  background: rgba(76, 175, 132, 0.12) !important;
+}
+body.dark-mode .editable-content .callout-tip {
+  border-left-color: #58a6ff !important;
+  background: rgba(88, 166, 255, 0.12) !important;
+}
+body.dark-mode .editable-content .callout-warning {
+  border-left-color: #f39c12 !important;
+  background: rgba(243, 156, 18, 0.12) !important;
+}
+body.dark-mode .editable-content .callout-danger {
+  border-left-color: #e74c3c !important;
+  background: rgba(231, 76, 60, 0.12) !important;
+}
+body.dark-mode .editable-content .callout-example {
+  border-left-color: #a29bfe !important;
+  background: rgba(162, 155, 254, 0.12) !important;
+}
+body.dark-mode .editable-content .callout-quote {
+  border-left-color: #7f8c8d !important;
+  background: rgba(127, 140, 141, 0.12) !important;
+}
+body.dark-mode .editable-content .html-embed-container {
+  border-color: #444;
+  background: #1e1e1e;
+}
+body.dark-mode .editable-content img {
+  filter: brightness(var(--img-brightness, 0.85));
+}
+
+.edit-actions button {
+  padding: 0.4rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-save {
+  background: #2d7d46;
+  color: white;
+}
+.btn-save:hover {
+  background: #1e5f34;
+}
+
+.btn-cancel {
+  background: #ddd;
+  color: #333;
+}
+.btn-cancel:hover {
+  background: #ccc;
+}
+
+body.dark-mode .btn-cancel {
+  background: #444;
+  color: #ddd;
+}
+body.dark-mode .btn-cancel:hover {
+  background: #555;
+}
+
+/* Image upload placeholder */
+.img-upload-placeholder {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.2rem;
+  background: #f0f0f0;
+  border: 2px dashed #999;
+  border-radius: 8px;
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+}
+body.dark-mode .img-upload-placeholder {
+  background: #1a1a1a;
+  border-color: #555;
+  color: #adadad;
+}
+.img-upload-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-top-color: #4099ff;
+  border-radius: 50%;
+  animation: img-upload-spin 0.8s linear infinite;
+}
+@keyframes img-upload-spin {
+  to { transform: rotate(360deg); }
+}

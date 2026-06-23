@@ -1,0 +1,219 @@
+#settings-toggle {
+  position: fixed;
+  top: 1.2rem;
+  right: 1.5rem;
+  z-index: 999;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #888;
+  transition:
+    color 0.2s,
+    transform 0.2s;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(4px);
+  border: 1px solid #eaeaea;
+}
+#settings-toggle:hover {
+  color: #333;
+  transform: rotate(60deg);
+  background: #fff;
+}
+
+.edit-toggle-fixed {
+  position: fixed;
+  top: 70px;
+  right: 1.5rem;
+  z-index: 999;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 1.5rem;
+  color: #888;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    transform 0.2s,
+    background 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  width: auto;
+  height: auto;
+  display: inline-block;
+  line-height: 1;
+}
+.edit-toggle-fixed:hover {
+  color: #333;
+  background: #fff;
+}
+.edit-toggle-fixed:active {
+  transform: scale(0.95);
+}
+
+#settings-panel {
+  position: fixed;
+  top: 4.5rem;
+  /* Position to the LEFT of the outline rail (collapsed width 28px + 8px gap). */
+  right: 36px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 1.2rem 1.5rem;
+  min-width: 240px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 25;
+  transition:
+    opacity 0.2s,
+    transform 0.2s,
+    right 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* When the outline rail is expanded (hover OR pinned), push the settings
+   panel left so it stays visible next to the rail. Uses :has() which is
+   supported in all modern browsers (2023+). */
+body:has(#outline-rail:hover) #settings-panel,
+body:has(#outline-rail.pinned) #settings-panel {
+  right: 268px;
+}
+/* When the rail is fully hidden, the settings panel returns to the default
+   right margin (no rail to avoid). */
+body:has(#outline-rail.fully-hidden) #settings-panel {
+  right: 1.5rem;
+}
+#settings-panel.hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.4rem 0;
+  font-size: 0.85rem;
+  color: #333;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.settings-row label {
+  flex: 1;
+  min-width: 100px;
+  cursor: pointer;
+}
+.settings-row input[type="range"] {
+  flex: 2;
+  min-width: 80px;
+  accent-color: #2d7d46;
+}
+.settings-row select {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.2rem 0.4rem;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+}
+.settings-row span {
+  min-width: 2.5rem;
+  text-align: right;
+  font-weight: 500;
+}
+#darkModeToggle {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: #2d7d46;
+}
+#shortcuts-section {
+  margin-top: 1rem;
+  border-top: 1px solid #eaeaea;
+  padding-top: 0.8rem;
+}
+#shortcuts-section h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  font-size: 0.85rem;
+}
+.shortcut-label {
+  flex: 1;
+  min-width: 100px;
+  color: #555;
+}
+.shortcut-key {
+  background: #f0f0f0;
+  padding: 0.1rem 0.6rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #333;
+  min-width: 80px;
+  text-align: center;
+}
+.shortcut-record-btn {
+  background: #2b6c94;
+  color: white;
+  border: none;
+  padding: 0.1rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+.shortcut-record-btn:hover {
+  background: #1d4b6b;
+}
+
+body.dark-mode #settings-toggle {
+  color: #aaa;
+  background: rgba(30, 30, 30, 0.85);
+  border-color: #444;
+}
+body.dark-mode #settings-toggle:hover {
+  color: #fff;
+  background: #2a2a2a;
+}
+body.dark-mode .edit-toggle-fixed {
+  color: #aaa;
+  background: rgba(30, 30, 30, 0.85);
+  border-color: #444;
+}
+body.dark-mode .edit-toggle-fixed:hover {
+  color: #fff;
+  background: #2a2a2a;
+}
+body.dark-mode #settings-panel {
+  background: #242424;
+  border-color: #444;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+body.dark-mode .settings-row {
+  color: #ddd;
+}
+body.dark-mode .settings-row select {
+  background: #1e1e1e;
+  border-color: #555;
+  color: #ddd;
+}
+body.dark-mode #darkModeToggle {
+  accent-color: #58a6ff;
+}
+body.dark-mode .shortcut-key {
+  background: #2a2a2a;
+  color: #ddd;
+}
+body.dark-mode .shortcut-label {
+  color: #ccc;
+}
+body.dark-mode #shortcuts-section h4 {
+  color: #ddd;
+}

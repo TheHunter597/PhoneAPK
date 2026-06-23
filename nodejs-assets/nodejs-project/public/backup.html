@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backup Manager — Obsidian Toolbox</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .backup-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .backup-info { flex: 1; min-width: 240px; }
+      .backup-type { font-weight: 600; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+      .backup-meta { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem; display: flex; flex-direction: column; gap: 0.15rem; }
+      .backup-error {
+        font-size: 0.8rem;
+        color: var(--danger);
+        background: var(--danger-light);
+        padding: 0.4rem 0.6rem;
+        border-radius: var(--radius-xs);
+        margin-top: 0.4rem;
+        font-family: var(--font-mono);
+        word-break: break-word;
+      }
+      .backup-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <a href="index.html" class="topbar-back">← Dashboard</a>
+      <span class="topbar-title">💾 Backup Manager</span>
+    </div>
+
+    <div class="page page-narrow">
+      <div class="page-header">
+        <p>
+          Automated vault backups with success tracking, atomic swaps, and
+          automatic retry with exponential backoff. The previous backup is
+          never deleted until the new one is fully ready.
+        </p>
+      </div>
+
+      <div id="statusMessage" class="alert hidden"></div>
+      <div id="backupStatusList"></div>
+
+      <div class="card mt-3">
+        <div class="card-title">Quick actions</div>
+        <div class="btn-row mt-2">
+          <button id="backupAllBtn" class="btn btn-primary">📀 Backup all now</button>
+          <button id="refreshStatusBtn" class="btn btn-secondary">🔄 Refresh status</button>
+          <button id="retryFailedBtn" class="btn btn-danger">🔁 Retry failed</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const statusList = document.getElementById("backupStatusList");
+        const statusMsg = document.getElementById("statusMessage");
+
+        function showMessage(text, type) {
+          statusMsg.textContent = text;
+          statusMsg.className = "alert alert-" + type;
+        }
+        function hideMessage() { statusMsg.className = "alert hidden"; statusMsg.textContent = ""; }
+
+        function formatDate(iso) {
+          if (!iso) return "Never";
+          try {
+            return new Date(iso).toLocaleString();
+          } catch { return iso; }
+        }
+        function formatDuration(ms) {
+          if (!ms || ms < 1) return "—";
+          if (ms < 1000) return ms + "ms";
+          if (ms < 60000) return (ms / 1000).toFixed(1) + "s";
+          return Math.floor(ms / 60000) + "m " + Math.floor((ms % 60000) / 1000) + "s";
+        }
+
+        async function loadStatus() {
+          try {
+            const res = await fetch("/api/backup-status");
+            const data = await res.json();
+            if (!data.success) throw new Error("Failed to fetch status");
+            const state = data.state;
+            const types = ["six_hour", "daily", "three_day", "weekly"];
+            const labels = {
+              six_hour: "🕒 Every 6 hours",
+              daily: "📅 Daily",
+              three_day: "📆 Every 3 days",
+              weekly: "📆 Weekly (Sunday)",
+            };
+            let html = "";
+            for (const type of types) {
+              const info = state[type] || { lastRun: null, success: false };
+              const lastStr = formatDate(info.lastRun);
+              const successStr = formatDate(info.lastSuccess);
+              const statusClass = info.success ? "success" : "danger";
+              const statusText = info.success ? "✅ OK" : "❌ Failed";
+              const retryText = info.retryCount > 0 ? ` · retry ${info.retryCount}/5` : "";
+              const nextRetry = info.nextRetryAt ? ` · next retry ${formatDate(info.nextRetryAt)}` : "";
+              const duration = info.durationMs ? ` · ${formatDuration(info.durationMs)}` : "";
+              const files = info.fileCount ? ` · ${info.fileCount} files` : "";
+
+              html += `
+                <div class="card backup-card" data-type="${type}">
+                  <div class="backup-info">
+                    <div class="backup-type">${labels[type]} <span class="badge badge-${statusClass}">${statusText}</span></div>
+                    <div class="backup-meta">
+                      <span>Last run: ${lastStr}${duration}${files}${retryText}${nextRetry}</span>
+                      <span>Last success: ${successStr}</span>
+                    </div>
+                    ${info.lastError ? `<div class="backup-error">⚠ ${info.lastError}</div>` : ""}
+                  </div>
+                  <div class="backup-actions">
+                    <button class="btn btn-secondary btn-sm btn-trigger" data-type="${type}">Trigger now</button>
+                    ${!info.success && info.lastRun ? `<button class="btn btn-danger btn-sm btn-retry" data-type="${type}">Retry</button>` : ""}
+                  </div>
+                </div>
+              `;
+            }
+            statusList.innerHTML = html;
+
+            document.querySelectorAll(".btn-trigger").forEach((btn) => {
+              btn.addEventListener("click", (e) => triggerBackup(e.target.dataset.type));
+            });
+            document.querySelectorAll(".btn-retry").forEach((btn) => {
+              btn.addEventListener("click", (e) => triggerBackup(e.target.dataset.type));
+            });
+            hideMessage();
+          } catch (err) {
+            showMessage("Error loading status: " + err.message, "danger");
+          }
+        }
+
+        async function triggerBackup(type) {
+          showMessage(`⏳ Triggering ${type} backup…`, "info");
+          try {
+            const res = await fetch(`/api/backup?type=${encodeURIComponent(type)}`, { method: "POST" });
+            const data = await res.json();
+            if (data.success) {
+              showMessage(`✅ ${type} backup completed (${formatDuration(data.durationMs)}, ${data.fileCount} files).`, "success");
+            } else {
+              showMessage(`❌ ${type} backup failed: ${data.error || "Unknown error"}`, "danger");
+            }
+            await loadStatus();
+          } catch (err) {
+            showMessage(`❌ Error: ${err.message}`, "danger");
+          }
+        }
+
+        async function triggerAllBackups() {
+          showMessage("⏳ Triggering all backups…", "info");
+          try {
+            const res = await fetch("/api/backup", { method: "POST" });
+            const data = await res.json();
+            if (data.success) showMessage("✅ All backups completed.", "success");
+            else showMessage("❌ Some backups failed. Check status below.", "danger");
+            await loadStatus();
+          } catch (err) {
+            showMessage(`❌ Error: ${err.message}`, "danger");
+          }
+        }
+
+        async function retryFailed() {
+          showMessage("⏳ Retrying failed backups…", "info");
+          try {
+            const statusRes = await fetch("/api/backup-status");
+            const statusData = await statusRes.json();
+            if (!statusData.success) throw new Error("Could not fetch status");
+            const failed = Object.entries(statusData.state)
+              .filter(([, info]) => info && info.lastRun && !info.success)
+              .map(([type]) => type);
+            if (failed.length === 0) {
+              showMessage("✅ No failed backups to retry.", "success");
+              return;
+            }
+            for (const type of failed) {
+              await fetch(`/api/backup?type=${encodeURIComponent(type)}`, { method: "POST" });
+            }
+            showMessage(`✅ Retried ${failed.length} failed backup(s).`, "success");
+            await loadStatus();
+          } catch (err) {
+            showMessage(`❌ Error: ${err.message}`, "danger");
+          }
+        }
+
+        document.getElementById("backupAllBtn").addEventListener("click", triggerAllBackups);
+        document.getElementById("refreshStatusBtn").addEventListener("click", loadStatus);
+        document.getElementById("retryFailedBtn").addEventListener("click", retryFailed);
+
+        loadStatus();
+        setInterval(loadStatus, 15000);
+      })();
+    </script>
+  </body>
+</html>

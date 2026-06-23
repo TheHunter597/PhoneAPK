@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vault Settings</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: #0d0d0d;
+      color: #f8f8f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem;
+    }
+    .settings-card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 560px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 1.5rem 0;
+      color: #f8f8f8;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: #adadad;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+    input[type="text"] {
+      width: 100%;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      color: #f8f8f8;
+      padding: 0.7rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: monospace;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus {
+      border-color: #4099ff;
+    }
+    .hint {
+      font-size: 0.75rem;
+      color: #555;
+      margin-top: 0.3rem;
+      line-height: 1.5;
+    }
+    .btn-row {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 2rem;
+    }
+    .btn {
+      flex: 1;
+      padding: 0.8rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      font-family: inherit;
+    }
+    .btn-save {
+      background: #2d7d46;
+      color: #fff;
+    }
+    .btn-save:hover { background: #246438; }
+    .btn-back {
+      background: #2a2a2a;
+      color: #f8f8f8;
+      border: 1px solid #444;
+    }
+    .btn-back:hover { background: #363636; }
+    .status {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      display: none;
+    }
+    .status.success {
+      background: #2d7d4630;
+      border: 1px solid #2d7d46;
+      color: #6fcf97;
+      display: block;
+    }
+    .status.error {
+      background: #c0392b30;
+      border: 1px solid #c0392b;
+      color: #e74c3c;
+      display: block;
+    }
+    .current-info {
+      background: #0d0d0d;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 0.8rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.8rem;
+      color: #747474;
+      line-height: 1.6;
+    }
+    .current-info strong { color: #adadad; }
+  </style>
+</head>
+<body>
+  <div class="settings-card">
+    <h1>⚙️ Vault Settings</h1>
+
+    <div class="current-info" id="currentInfo">
+      Loading current configuration...
+    </div>
+
+    <div class="form-group">
+      <label for="vaultPath">Obsidian Vault Path</label>
+      <input type="text" id="vaultPath" placeholder="C:\Users\You\Documents\MyVault">
+      <div class="hint">The folder containing your Obsidian vault (with .obsidian folder inside). Backups and file watching will apply to this path.</div>
+    </div>
+
+    <div class="form-group">
+      <label for="backupDestination">Backup Destination</label>
+      <input type="text" id="backupDestination" placeholder="D:\Backups\Obsidian">
+      <div class="hint">Backups will be stored in a subfolder named after your vault inside this path. Example: if vault is "MainIntern", backups go to [destination]/MainIntern/</div>
+    </div>
+
+    <div class="form-group">
+      <label for="backupTimezone">Backup Timezone</label>
+      <input type="text" id="backupTimezone" placeholder="Africa/Cairo">
+      <div class="hint">IANA timezone for backup scheduling (e.g. Africa/Cairo, America/New_York, Europe/London).</div>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="btn-row">
+      <a href="/viewer.html" class="btn btn-back">← Back to Viewer</a>
+      <button class="btn btn-save" id="saveBtn">💾 Save & Restart</button>
+    </div>
+  </div>
+
+  <script>
+    // Load current config
+    fetch('/api/config').then(r => r.json()).then(data => {
+      if (data.success) {
+        document.getElementById('vaultPath').value = data.config.vaultPath || '';
+        document.getElementById('backupDestination').value = data.config.backupDestination || '';
+        document.getElementById('backupTimezone').value = data.config.backupTimezone || '';
+        const vaultName = (data.config.vaultPath || '').replace(/\\/g, '/').split('/').pop() || 'Unknown';
+        document.getElementById('currentInfo').innerHTML = `
+          <strong>Current vault:</strong> ${vaultName}<br>
+          <strong>Path:</strong> ${data.config.vaultPath || '(not set)'}<br>
+          <strong>Backups:</strong> ${data.config.backupDestination || '(not set)'} / ${vaultName}/<br>
+          <strong>Timezone:</strong> ${data.config.backupTimezone || '(system default)'}
+        `;
+      }
+    }).catch(() => {
+      document.getElementById('currentInfo').innerHTML = '<span style="color:#e74c3c">Could not load config. Make sure the server is running.</span>';
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const vaultPath = document.getElementById('vaultPath').value.trim();
+      const backupDestination = document.getElementById('backupDestination').value.trim();
+      const backupTimezone = document.getElementById('backupTimezone').value.trim();
+      const status = document.getElementById('status');
+      const btn = document.getElementById('saveBtn');
+
+      if (!vaultPath) {
+        status.className = 'status error';
+        status.textContent = 'Vault path is required.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vaultPath, backupDestination, backupTimezone }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          status.className = 'status success';
+          status.textContent = '✅ Configuration saved! The server will restart automatically. Refresh this page in a few seconds.';
+          btn.textContent = '✓ Saved';
+        } else {
+          status.className = 'status error';
+          status.textContent = '❌ ' + (data.error || 'Save failed');
+          btn.disabled = false;
+          btn.textContent = '💾 Save & Restart';
+        }
+      } catch (err) {
+        status.className = 'status error';
+        status.textContent = '❌ Connection error: ' + err.message;
+        btn.disabled = false;
+        btn.textContent = '💾 Save & Restart';
+      }
+    });
+  </script>
+</body>
+</html>

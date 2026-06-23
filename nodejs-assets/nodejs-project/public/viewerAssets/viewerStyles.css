@@ -1,0 +1,18 @@
+/* ============================================== */
+/* viewerStyles.css – imports all partials       */
+/* ============================================== */
+
+@import url("css/base.css");
+@import url("css/sidebar.css");
+@import url("css/tabs.css");
+@import url("css/editor.css");
+@import url("css/markdown.css");
+@import url("css/settings.css");
+@import url("css/lightbox.css");
+@import url("css/dark-mode.css");
+@import url("css/outline.css");
+@import url("css/animals.css");
+@import url("css/chat.css");
+@import url("css/image-editor.css");
+@import url("css/new-features.css");
+@import url("css/mobile.css");

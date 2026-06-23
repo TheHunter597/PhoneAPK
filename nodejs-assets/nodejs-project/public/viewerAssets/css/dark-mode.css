@@ -1,0 +1,478 @@
+/* ============================================== */
+/* ===== DARK MODE — warm editorial (stone family) ===== */
+/* ============================================== */
+/*
+  Colour philosophy (mirrors the ubiquitin-chain reference page):
+  ------------------------------------------------------------
+  Two kinds of colour, opposite treatment:
+
+    1. MEANING-CARRIERS stay LITERAL hex in both themes.
+       - The 5 highlight-block border hues (blue/green/red/orange/purple)
+       - The brand accent #4099ff (links, active states, save button)
+       - Callout accent strokes (info=green, tip=blue, warning=amber,
+         danger=red, example=purple) — brightened ~2 stops for dark legibility
+         (rule #6), but hue family preserved.
+       Colour IS the message → never invert these.
+
+    2. STRUCTURAL colours FLIP.
+       - Neutrals (page / panel / borders / text) → warm near-black stone
+         family, NEVER pure #000. #0c0a09 page keeps the editorial feel and
+         lets borders (#292524) still register.
+       - Soft tints (highlight-block + callout backgrounds) → invert lightness
+         while preserving hue: light-mode pastels → dark-mode DEEP JEWELS
+         (*-950 family). A pastel on near-black would be a glaring slab; the
+         deep jewel reads as "a dark {hue}-tinted zone" so the colour-meaning
+         holds, and the bright stroke on top pops exactly as it did on the
+         pastel. (rule #5 — the single most important trick)
+       - Borders get DARKER, not lighter: a border is always one step away
+         from its surface in the SAME direction. (rule #2)
+       - Three text greys lifted into the 100/300/400 band for WCAG AA. (rule #2)
+
+  Test the RELATIONSHIP, not the swatch: "bright stroke on tinted fill on
+  warm panel surface" must keep the same contrast hierarchy in both themes.
+*/
+
+/* ------------------------------------------------------------
+   1. TOKENS
+   ------------------------------------------------------------ */
+body.dark-mode {
+  /* --- Neutrals: warm stone family (never pure black) --- */
+  --dk-surface:     #0c0a09;  /* page bg         (stone-950)  */
+  --dk-alt:         #161312;  /* alt band        (~3% lighter) */
+  --dk-panel:       #1c1917;  /* card / popover  (stone-900)  */
+  --dk-subtle:      #292524;  /* subtle bg       (stone-800)  */
+  --dk-hover:       #44403c;  /* hover / strong  (stone-700)  */
+  --dk-line:        #292524;  /* hairline border (1 step darker than panel) */
+  --dk-line-strong: #44403c;  /* divider / ring                       */
+  --dk-ink:         #f5f5f4;  /* primary text    (stone-100)    */
+  --dk-ink-soft:    #d6d3d1;  /* secondary text  (stone-300)    */
+  --dk-muted:       #a8a29e;  /* captions        (stone-400)    */
+  --dk-accent:      #4099ff;  /* brand accent (literal, meaning-carrier) */
+
+  /* --- Soft tints: DEEP JEWELS (hue preserved, lightness inverted) --- */
+  --dk-blue-soft:   #0a1f3d;  /* deep navy   — blue family   */
+  --dk-green-soft:  #052e1f;  /* deep emerald— green family  */
+  --dk-red-soft:    #450a0a;  /* deep maroon — red family    */
+  --dk-orange-soft: #2a160a;  /* deep umber  — orange family  */
+  --dk-purple-soft: #2a1245;  /* deep violet — purple family  */
+  --dk-neutral-soft:#1c1917;  /* neutral deep (callout-quote) */
+
+  /* --- Translucent "frosted" surface --- */
+  --dk-glass:       rgba(12, 10, 9, 0.8);
+}
+
+/* ------------------------------------------------------------
+   2. MAIN CONTENT AREA
+   ------------------------------------------------------------ */
+body.dark-mode #main {
+  background: var(--dk-surface);
+}
+body.dark-mode #main .note-content {
+  color: var(--dk-ink);
+  font-family: Geist, "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+body.dark-mode #main .empty-state {
+  color: var(--dk-muted);
+}
+
+/* ------------------------------------------------------------
+   3. HEADINGS
+   ------------------------------------------------------------ */
+body.dark-mode #main .note-content h1 {
+  color: var(--dk-ink);
+  border-bottom-color: var(--dk-line);
+}
+body.dark-mode #main .note-content h2 {
+  color: var(--dk-ink);
+  border-bottom-color: var(--dk-line);
+}
+body.dark-mode #main .note-content h3 {
+  color: var(--dk-ink-soft);
+}
+body.dark-mode #main .note-content h4,
+body.dark-mode #main .note-content h5,
+body.dark-mode #main .note-content h6 {
+  color: var(--dk-ink-soft);
+}
+
+/* ------------------------------------------------------------
+   4. BLOCK ELEMENTS
+   ------------------------------------------------------------ */
+body.dark-mode #main .note-content blockquote {
+  background: var(--dk-panel);
+  border-left-color: var(--dk-line-strong);
+  color: var(--dk-ink-soft);
+}
+body.dark-mode #main .note-content code {
+  background: var(--dk-subtle);
+  color: #f08a8a;
+  border-color: var(--dk-line);
+}
+body.dark-mode #main .note-content pre {
+  background: var(--dk-panel);
+  color: #d4d4d4;
+  border: 1px solid var(--dk-line);
+}
+body.dark-mode #main .note-content pre code {
+  background: transparent;
+  border: none;
+}
+
+/* ------------------------------------------------------------
+   5. TABLES  (alt-band rhythm: even rows use --dk-alt)
+   ------------------------------------------------------------ */
+body.dark-mode #main .note-content table th {
+  background: var(--dk-panel);
+  color: var(--dk-ink);
+  border-color: var(--dk-line);
+}
+body.dark-mode #main .note-content table td {
+  border-color: var(--dk-line);
+  color: var(--dk-ink-soft);
+}
+body.dark-mode #main .note-content table tr:nth-child(even) {
+  background: var(--dk-alt);
+}
+
+/* ------------------------------------------------------------
+   6. LINKS  (brand accent — literal meaning-carrier)
+   ------------------------------------------------------------ */
+body.dark-mode #main .note-content a {
+  color: var(--dk-accent);
+}
+body.dark-mode #main .note-content a:hover {
+  color: #99c7ff;
+  text-decoration: underline;
+}
+
+/* ---- Obsidian note links ---- */
+body.dark-mode .note-link,
+body.dark-mode .editor-link {
+  color: var(--dk-accent);
+  background: rgba(64, 153, 255, 0.12);
+  border-bottom-color: rgba(64, 153, 255, 0.2);
+}
+body.dark-mode .note-link:hover,
+body.dark-mode .editor-link:hover {
+  color: #99c7ff;
+  background: rgba(64, 153, 255, 0.2);
+  box-shadow: 0 0 12px rgba(64, 153, 255, 0.15);
+}
+
+/* ------------------------------------------------------------
+   7. CALLOUTS  (brightened stroke + DEEP-JEWEL fill)
+   The border hues are brightened ~2 stops (rule #6) but stay in the
+   same hue family; the background flips to a deep jewel (rule #5) so
+   "bright stroke on tinted fill" holds in dark mode.
+   ------------------------------------------------------------ */
+body.dark-mode .callout {
+  background: var(--dk-panel) !important;
+  border-left-color: var(--dk-line-strong) !important;
+  color: var(--dk-ink-soft) !important;
+}
+body.dark-mode .callout-title {
+  color: var(--dk-ink) !important;
+  font-weight: 600 !important;
+}
+body.dark-mode .callout-content {
+  color: var(--dk-ink-soft) !important;
+}
+body.dark-mode .callout-info {
+  border-left-color: #4caf84 !important;
+  background: var(--dk-green-soft) !important;
+}
+body.dark-mode .callout-tip {
+  border-left-color: #58a6ff !important;
+  background: var(--dk-blue-soft) !important;
+}
+body.dark-mode .callout-warning {
+  border-left-color: #f39c12 !important;
+  background: var(--dk-orange-soft) !important;
+}
+body.dark-mode .callout-danger {
+  border-left-color: #e74c3c !important;
+  background: var(--dk-red-soft) !important;
+}
+body.dark-mode .callout-example {
+  border-left-color: #a29bfe !important;
+  background: var(--dk-purple-soft) !important;
+}
+body.dark-mode .callout-quote {
+  border-left-color: #7f8c8d !important;
+  background: var(--dk-neutral-soft) !important;
+}
+
+/* ------------------------------------------------------------
+   8. HIGHLIGHT BLOCKS (@@@ color ... @@@)
+   Borders are LITERAL meaning-carriers (same hex as light mode);
+   backgrounds flip to DEEP-JEWEL tints. See new-features.css for the
+   canonical rules — these tokens are consumed there.
+   ------------------------------------------------------------ */
+
+/* ------------------------------------------------------------
+   9. SETTINGS PANEL
+   ------------------------------------------------------------ */
+body.dark-mode #settings-panel {
+  background: var(--dk-panel);
+  border-color: var(--dk-line);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+body.dark-mode .settings-row {
+  color: var(--dk-ink-soft);
+}
+body.dark-mode .settings-row label {
+  color: var(--dk-ink);
+}
+body.dark-mode .settings-row select {
+  background: var(--dk-surface);
+  border-color: var(--dk-line);
+  color: var(--dk-ink);
+}
+body.dark-mode .settings-row input[type="range"] {
+  accent-color: var(--dk-accent);
+}
+body.dark-mode #darkModeToggle {
+  accent-color: var(--dk-accent);
+}
+
+/* ------------------------------------------------------------
+   10. HTML EMBEDS
+   ------------------------------------------------------------ */
+body.dark-mode .html-embed-container {
+  border-color: var(--dk-line);
+  background: var(--dk-surface);
+}
+
+/* ------------------------------------------------------------
+   11. SCROLLBARS (solid warm stone, one step lighter than surface)
+   ------------------------------------------------------------ */
+body.dark-mode #main::-webkit-scrollbar {
+  width: 4px;
+}
+body.dark-mode #main::-webkit-scrollbar-track {
+  background: transparent;
+}
+body.dark-mode #main::-webkit-scrollbar-thumb {
+  background: var(--dk-subtle);
+  border: 1px solid var(--dk-line-strong);
+  border-radius: 9999px;
+}
+body.dark-mode #main::-webkit-scrollbar-thumb:hover {
+  background: var(--dk-hover);
+}
+
+/* ------------------------------------------------------------
+   12. IMAGES (dimmed in dark mode)
+   ------------------------------------------------------------ */
+body.dark-mode .note-content img {
+  filter: brightness(var(--img-brightness, 0.85));
+  transition: filter 0.2s;
+}
+
+/* ------------------------------------------------------------
+   13. TABS
+   ------------------------------------------------------------ */
+body.dark-mode #tabs-container {
+  background: var(--dk-panel);
+  border-top-color: var(--dk-line);
+}
+body.dark-mode .tab-item {
+  background: var(--dk-subtle);
+  border-color: var(--dk-line);
+  color: var(--dk-ink-soft);
+}
+body.dark-mode .tab-item.active {
+  background: var(--dk-surface);
+  border-color: var(--dk-line) var(--dk-line) var(--dk-surface) var(--dk-line);
+  color: var(--dk-ink);
+  border-bottom: 2px solid var(--dk-accent);
+}
+body.dark-mode .tab-item:hover {
+  background: var(--dk-hover);
+}
+body.dark-mode .tab-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ff5c5c;
+}
+body.dark-mode .tab-back-btn {
+  color: var(--dk-ink-soft);
+}
+body.dark-mode .tab-back-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--dk-ink);
+}
+
+/* ------------------------------------------------------------
+   14. EDITOR
+   ------------------------------------------------------------ */
+body.dark-mode .note-editor,
+body.dark-mode #editableNote {
+  background: var(--dk-surface);
+  color: var(--dk-ink);
+}
+body.dark-mode .markdown-textarea {
+  background: var(--dk-surface);
+  color: var(--dk-ink);
+  border-color: var(--dk-line);
+}
+body.dark-mode .markdown-textarea:focus {
+  border-color: var(--dk-accent);
+  box-shadow: 0 0 0 3px rgba(64, 153, 255, 0.15);
+}
+body.dark-mode .btn-save {
+  background: var(--dk-accent);
+  color: #fff;
+}
+body.dark-mode .btn-save:hover {
+  background: #99c7ff;
+}
+body.dark-mode .btn-cancel {
+  background: var(--dk-hover);
+  color: var(--dk-ink-soft);
+  border: 1px solid var(--dk-line);
+}
+body.dark-mode .btn-cancel:hover {
+  background: var(--dk-subtle);
+  color: var(--dk-ink);
+}
+body.dark-mode #content.editing {
+  background: var(--dk-surface);
+}
+body.dark-mode .editable-content {
+  color: var(--dk-ink);
+}
+body.dark-mode .editable-content h1 { color: var(--dk-ink); border-bottom-color: var(--dk-line); }
+body.dark-mode .editable-content h2 { color: var(--dk-ink); border-bottom-color: var(--dk-line); }
+body.dark-mode .editable-content h3 { color: var(--dk-ink-soft); }
+body.dark-mode .editable-content blockquote { background: var(--dk-panel); border-left-color: var(--dk-line-strong); color: var(--dk-ink-soft); }
+body.dark-mode .editable-content code { background: var(--dk-subtle); color: #f08a8a; border-color: var(--dk-line); }
+body.dark-mode .editable-content pre { background: var(--dk-panel); color: #d4d4d4; }
+body.dark-mode .editable-content table th { background: var(--dk-panel); color: var(--dk-ink); }
+body.dark-mode .editable-content table td { border-color: var(--dk-line); color: var(--dk-ink-soft); }
+body.dark-mode .editable-content a { color: var(--dk-accent); }
+body.dark-mode .editable-content img { filter: brightness(var(--img-brightness, 0.85)); }
+
+/* ------------------------------------------------------------
+   15. SHORTCUTS SECTION
+   ------------------------------------------------------------ */
+body.dark-mode .shortcut-key {
+  background: var(--dk-subtle);
+  color: var(--dk-ink);
+  border: 1px solid var(--dk-line);
+}
+body.dark-mode .shortcut-label {
+  color: var(--dk-ink-soft);
+}
+body.dark-mode #shortcuts-section h4 {
+  color: var(--dk-ink);
+}
+body.dark-mode .shortcut-record-btn {
+  background: var(--dk-accent);
+}
+
+/* ------------------------------------------------------------
+   16. TEXT SELECTION (Z.ai blue — brand, literal)
+   ------------------------------------------------------------ */
+body.dark-mode ::selection {
+  background-color: #b4d6ff;
+  color: #000;
+}
+
+/* ------------------------------------------------------------
+   17. OUTLINE RAIL
+   ------------------------------------------------------------ */
+body.dark-mode #outline-rail {
+  background: var(--dk-surface);
+  border-left-color: var(--dk-line);
+}
+body.dark-mode #outline-rail:hover,
+body.dark-mode #outline-rail.pinned {
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.6);
+}
+body.dark-mode .outline-icon-btn { color: var(--dk-muted); }
+body.dark-mode .outline-icon-btn:hover { background: rgba(255, 255, 255, 0.06); color: var(--dk-ink); }
+body.dark-mode .outline-item { color: var(--dk-muted); }
+body.dark-mode .outline-item:hover { background: rgba(255, 255, 255, 0.06); color: var(--dk-ink); }
+body.dark-mode .outline-item.active {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--dk-ink);
+  border-left-color: var(--dk-accent);
+}
+body.dark-mode .outline-rail-divider { background: var(--dk-line); }
+body.dark-mode .outline-rail-label { color: var(--dk-muted); }
+body.dark-mode #outline-show-btn {
+  background: var(--dk-surface);
+  border-left-color: var(--dk-line);
+  color: var(--dk-muted);
+}
+body.dark-mode #outline-show-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--dk-ink);
+}
+
+/* ------------------------------------------------------------
+   18. SIDEBAR  (always-dark chrome — warmed to stone in dark mode)
+   ------------------------------------------------------------ */
+body.dark-mode #sidebar {
+  background: var(--dk-surface);
+  border-right-color: var(--dk-line);
+}
+body.dark-mode #sidebar-header {
+  border-bottom-color: var(--dk-line);
+}
+body.dark-mode #sidebar-header h2 { color: var(--dk-ink); }
+body.dark-mode #search input {
+  background: var(--dk-subtle);
+  border-color: var(--dk-line);
+  color: var(--dk-ink);
+}
+body.dark-mode #tree-list li.folder:hover,
+body.dark-mode #tree-list li.folder > .folder-header:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+body.dark-mode #tree-list li.note:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+body.dark-mode #tree-list li.note.active {
+  background: rgba(64, 153, 255, 0.15);
+  color: var(--dk-ink);
+}
+body.dark-mode .sidebar-icon-btn { color: var(--dk-muted); }
+body.dark-mode .sidebar-icon-btn:hover { background: var(--dk-subtle); color: var(--dk-ink); }
+body.dark-mode #sidebar-show-btn {
+  background: var(--dk-surface);
+  border-right-color: var(--dk-line);
+  color: var(--dk-muted);
+}
+body.dark-mode #sidebar-show-btn:hover {
+  background: var(--dk-subtle);
+  color: var(--dk-ink);
+}
+
+/* ------------------------------------------------------------
+   19. TRANSLUCENT "FROSTED" BUTTONS (settings / edit toggle)
+   Dark glass: slightly less opaque than light so the blur reads as
+   frosted rather than a solid bar.
+   ------------------------------------------------------------ */
+body.dark-mode #settings-toggle {
+  color: var(--dk-ink-soft);
+  background: var(--dk-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: var(--dk-line);
+}
+body.dark-mode #settings-toggle:hover {
+  color: var(--dk-ink);
+  background: var(--dk-subtle);
+}
+body.dark-mode .edit-toggle-fixed {
+  color: var(--dk-ink-soft);
+  background: var(--dk-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: var(--dk-line);
+}
+body.dark-mode .edit-toggle-fixed:hover {
+  color: var(--dk-ink);
+  background: var(--dk-subtle);
+}

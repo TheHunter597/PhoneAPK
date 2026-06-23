@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Callout Generator — Obsidian Toolbox</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .callout-preview {
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-2);
+        padding: 0.8rem 1rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        min-height: 2.5rem;
+      }
+      .callout-preview.info { border-color: var(--info); background: var(--info-light); }
+      .callout-preview.tip { border-color: var(--primary); background: var(--primary-light); }
+      .callout-preview.warning { border-color: var(--warning); background: var(--warning-light); }
+      .callout-preview.danger { border-color: var(--danger); background: var(--danger-light); }
+      .callout-preview.success { border-color: var(--success); background: var(--success-light); }
+      .callout-preview.note { border-color: var(--border-strong); background: var(--surface-2); }
+      .callout-preview.question { border-color: #7c5cbf; background: #f0eaf8; }
+      .callout-preview .ct-title { font-weight: 600; margin-bottom: 0.2rem; }
+      pre {
+        background: #1e2330;
+        color: #d4d8e0;
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.6;
+      }
+      .type-grid {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .type-btn {
+        padding: 0.35rem 0.75rem;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        border-radius: var(--radius-full);
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+        text-transform: capitalize;
+      }
+      .type-btn:hover { border-color: var(--primary); }
+      .type-btn.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <a href="index.html" class="topbar-back">← Dashboard</a>
+      <span class="topbar-title">📦 Callout Generator</span>
+    </div>
+
+    <div class="page page-narrow">
+      <div class="page-header">
+        <p>Paste text, choose a callout type, and generate an Obsidian callout block.</p>
+      </div>
+
+      <div class="card">
+        <div class="form-row">
+          <label for="input">Text</label>
+          <textarea id="input" placeholder="Paste your text here…" style="min-height:140px;"></textarea>
+        </div>
+        <div class="form-row">
+          <label for="calloutTitle">Title (optional)</label>
+          <input type="text" id="calloutTitle" placeholder="e.g. Important note" />
+        </div>
+        <div class="form-row">
+          <label>Callout type</label>
+          <div class="type-grid" id="typeGrid">
+            <button class="type-btn selected" data-type="info">info</button>
+            <button class="type-btn" data-type="note">note</button>
+            <button class="type-btn" data-type="tip">tip</button>
+            <button class="type-btn" data-type="warning">warning</button>
+            <button class="type-btn" data-type="danger">danger</button>
+            <button class="type-btn" data-type="success">success</button>
+            <button class="type-btn" data-type="question">question</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-inline" style="font-weight:400;">
+            <input type="checkbox" id="collapsible" /> Make collapsible (folded by default)
+          </label>
+        </div>
+        <div class="btn-row">
+          <button id="generateBtn" class="btn btn-primary">Generate</button>
+          <button id="copyBtn" class="btn btn-secondary">📋 Copy</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Live preview</div>
+        <div id="preview" class="callout-preview">
+          <span class="text-muted">Your callout will appear here…</span>
+        </div>
+        <div class="card-title">Generated markdown</div>
+        <pre id="output"><span style="color:#6b7785;">Output appears here after generating…</span></pre>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const input = document.getElementById("input");
+        const titleInput = document.getElementById("calloutTitle");
+        const collapsible = document.getElementById("collapsible");
+        const output = document.getElementById("output");
+        const preview = document.getElementById("preview");
+        const generateBtn = document.getElementById("generateBtn");
+        const copyBtn = document.getElementById("copyBtn");
+        const typeGrid = document.getElementById("typeGrid");
+        let selectedType = "info";
+
+        typeGrid.querySelectorAll(".type-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            typeGrid.querySelectorAll(".type-btn").forEach((b) => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            selectedType = btn.dataset.type;
+            generateCallout();
+          });
+        });
+
+        function generateCallout() {
+          const text = input.value.trim();
+          const title = titleInput.value.trim();
+          if (!text) {
+            output.innerHTML = '<span style="color:#6b7785;">Output appears here after generating…</span>';
+            preview.innerHTML = '<span class="text-muted">Your callout will appear here…</span>';
+            preview.className = "callout-preview";
+            return;
+          }
+
+          let header = `> [!${selectedType}]`;
+          if (collapsible.checked) header += "-";
+          if (title) header += ` ${title}`;
+          let result = header + "\n";
+          text.split("\n").forEach((line) => {
+            result += line.trim() === "" ? ">\n" : `> ${line}\n`;
+          });
+
+          output.textContent = result;
+
+          // Live preview
+          preview.className = `callout-preview ${selectedType}`;
+          const previewTitle = title || selectedType.charAt(0).toUpperCase() + selectedType.slice(1);
+          const body = text.split("\n").map((l) => escapeHtml(l)).join("<br>") || "";
+          if (collapsible.checked) {
+            preview.innerHTML = `<details style="border:none;padding:0;background:transparent;"><summary class="ct-title">${escapeHtml(previewTitle)}</summary><div>${body}</div></details>`;
+          } else {
+            preview.innerHTML = `<div class="ct-title">${escapeHtml(previewTitle)}</div><div>${body}</div>`;
+          }
+        }
+
+        function escapeHtml(str) {
+          const div = document.createElement("div");
+          div.textContent = str;
+          return div.innerHTML;
+        }
+
+        generateBtn.addEventListener("click", generateCallout);
+        [input, titleInput, collapsible].forEach((el) => el.addEventListener("input", generateCallout));
+
+        copyBtn.addEventListener("click", async () => {
+          const text = output.textContent;
+          if (!text || text.startsWith("Output appears")) return;
+          try {
+            await navigator.clipboard.writeText(text);
+            copyBtn.textContent = "✅ Copied!";
+            setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
+          } catch {
+            alert("Failed to copy.");
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
