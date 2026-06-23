@@ -1,0 +1,10 @@
+// settings.gradle — RN 0.86 canonical Groovy DSL setup.
+// Copied verbatim from `npx @react-native-community/cli init` template,
+// only the project name changed.
+
+pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+plugins { id "com.facebook.react.settings" }
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
+rootProject.name = 'ObsidianServer'
+include ':app'
+includeBuild('../node_modules/@react-native/gradle-plugin')

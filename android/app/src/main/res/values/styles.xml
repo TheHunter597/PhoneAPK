@@ -1,12 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base app theme. -->
+
+    <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="android:colorBackground">@color/background</item>
-        <item name="android:statusBarColor">@color/background</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <!-- Customize your theme here. -->
+        <item name="android:editTextBackground">
+            @drawable/rn_edit_text_material
+        </item>
     </style>
 
-    <!-- Splash / boot theme — matches AppTheme so there is no flash on launch. -->
+    <!-- Boot theme — same as AppTheme so there's no flash on launch. -->
     <style name="BootTheme" parent="AppTheme" />
+
 </resources>

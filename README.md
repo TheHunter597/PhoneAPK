@@ -79,15 +79,15 @@ ServerAndroid/
 │   └── ...
 │
 ├── android/                      ← Native Android project (Gradle)
-│   ├── build.gradle.kts
-│   ├── settings.gradle.kts
+│   ├── build.gradle
+│   ├── settings.gradle
 │   ├── gradle.properties         ← hermesEnabled, newArchEnabled, etc.
 │   ├── gradlew / gradlew.bat     ← Gradle 8.10.2 wrapper
 │   ├── gradle/wrapper/
 │   │   ├── gradle-wrapper.jar
 │   │   └── gradle-wrapper.properties
 │   └── app/
-│       ├── build.gradle.kts      ← signing, ABI filters, BuildConfig
+│       ├── build.gradle          ← signing, ABI filters, BuildConfig
 │       ├── proguard-rules.pro
 │       ├── debug.keystore        ← (bundled, gitignored in real projects)
 │       └── src/main/
@@ -287,7 +287,7 @@ We solved this in three layers:
 | `gradlew: Permission denied` | Wrapper script not executable | `chmod +x android/gradlew` |
 | Gradle build fails with `SDK location not found` | `ANDROID_HOME` not set | `export ANDROID_HOME=$HOME/Android/Sdk` |
 | Build fails with `Failed to resolve: com.facebook.react:react-native-gradle-plugin` | RN gradle plugin not downloaded | Run `npm install` at the project root first |
-| Build fails with `More than one file was found with OS independent path 'lib/arm64-v8a/libnodejs-mobile.so'` | ABI filter conflict | Ensure `abiFilters += listOf("arm64-v8a", "x86_64")` in `app/build.gradle.kts` (don't include 32-bit ABIs) |
+| Build fails with `More than one file was found with OS independent path 'lib/arm64-v8a/libnodejs-mobile.so'` | ABI filter conflict | Ensure `abiFilters "arm64-v8a", "x86_64"` in `app/build.gradle` (don't include 32-bit ABIs) |
 | App launches but WebView shows "ERR_CONNECTION_REFUSED" | Node server didn't start | Check `adb logcat -s ReactNativeJS:V` for `server::error` events |
 | Sharp error: `Could not load the "sharp" module using the wasm32 runtime` | `@img/sharp-wasm32` not installed, or platform-specific prebuilt not stripped | Re-run `cd nodejs-assets/nodejs-project && npm install` — the `postinstall` script handles this |
 | Vault picker hangs on "Importing vault into app storage…" | Very large vault, or SAF permission expired | Wait; for >10k files, expect ~1 min per 1000 files. Check `adb logcat -s SafSyncModule:V` for progress |

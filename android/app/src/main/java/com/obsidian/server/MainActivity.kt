@@ -1,10 +1,8 @@
 package com.obsidian.server
 
-import android.content.Intent
-import android.os.Bundle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 /**
@@ -12,12 +10,13 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
  *
  * The actual UI (WebView, vault picker, etc.) is rendered by React Native.
  * We only handle launch + configuration changes here.
+ *
+ * NOTE: This is the RN 0.86 API. The DefaultReactActivityDelegate takes 3
+ * args: (this, mainComponentName, fabricEnabled). Previous RN versions used
+ * 4 args (with bridgelessEnabled + isBridgelessArchitectureEnabled) which
+ * no longer compile in 0.86.
  */
 class MainActivity : ReactActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     /**
      * Returns the name of the main React component registered from JS
@@ -26,15 +25,10 @@ class MainActivity : ReactActivity() {
     override fun getMainComponentName(): String = "ObsidianServer"
 
     /**
-     * Use the new architecture delegate (RN 0.74+) so the new Fabric
-     * renderer + TurboModules are enabled when the user opts in via
-     * gradle.properties (newArchEnabled=true).
+     * Returns the instance of the [ReactActivityDelegate]. We use
+     * [DefaultReactActivityDelegate] which allows you to enable New
+     * Architecture with a single boolean flag [fabricEnabled].
      */
     override fun createReactActivityDelegate(): ReactActivityDelegate =
-        DefaultReactActivityDelegate(
-            this,
-            mainComponentName,
-            DefaultNewArchitectureEntryPoint.bridgelessEnabled,
-            DefaultNewArchitectureEntryPoint.isBridgelessArchitectureEnabled,
-        )
+        DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 }

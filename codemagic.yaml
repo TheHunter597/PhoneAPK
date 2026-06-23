@@ -63,7 +63,7 @@ workflows:
           # Codemagic injects CM_KEYSTORE_PATH / CM_KEYSTORE_PASSWORD /
           # CM_KEY_ALIAS / CM_KEY_PASSWORD when you upload a keystore via
           # the web UI. We materialize them as android/keystore.properties
-          # so app/build.gradle.kts picks them up.
+          # so app/build.gradle picks them up.
           if [ -z "$CM_KEYSTORE_PATH" ]; then
             echo "⚠️  No keystore credentials found — falling back to debug signing."
             echo "    The APK will still install on your devices but is NOT Play-Store ready."
