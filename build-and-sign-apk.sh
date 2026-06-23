@@ -126,11 +126,13 @@ echo "==> Building $BUILD_TYPE APK with Gradle…"
 cd android
 
 # Make sure the Gradle wrapper script exists and is executable.
-if [[ ! -x ./gradlew ]]; then
-  red "ERROR: android/gradlew not found or not executable."
-  red "       Run 'npx react-native init --directory /tmp/rn-tmp && cp /tmp/rn-tmp/android/gradlew . && cp -r /tmp/rn-tmp/android/gradle ./gradle'"
+if [[ ! -f ./gradlew ]]; then
+  red "ERROR: android/gradlew not found."
+  red "       The Gradle wrapper files must be present — make sure they were"
+  red "       committed to git with: git add android/gradlew android/gradlew.bat android/gradle/wrapper/"
   exit 1
 fi
+chmod +x gradlew
 
 if [[ "$BUILD_TYPE" == "release" ]]; then
   ./gradlew assembleRelease --no-daemon
