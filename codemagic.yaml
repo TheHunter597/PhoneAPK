@@ -1,0 +1,139 @@
+# codemagic.yaml — Codemagic CI/CD config for the Obsidian Tools Android app
+#
+# Setup (one-time, ~5 minutes):
+#   1. Push this project to a GitHub / GitLab / Bitbucket repo.
+#   2. Sign in to https://codemagic.io with the same account.
+#   3. Click "Add application" → pick the repo → choose "React Native Android"
+#      as the project type.
+#   4. Go to "Code signing" → "Android keystore" → upload your release.keystore
+#      and fill in the alias + passwords. Codemagic encrypts them and injects
+#      them as environment variables at build time:
+#        CM_KEYSTORE_PATH            - path to the decrypted keystore on the builder
+#        CM_KEYSTORE                 - base64 of the keystore (alternative)
+#        CM_KEYSTORE_PASSWORD        - keystore password
+#        CM_KEY_ALIAS                - key alias
+#        CM_KEY_PASSWORD             - key password
+#   5. If you DON'T want to set up signing yet, change `workflow: release-build`
+#      to `workflow: debug-build` below — the debug variant uses the bundled
+#      debug.keystore and produces an installable APK without any signing setup.
+#   6. Click "Start new build" → pick the workflow → ~10 minutes later,
+#      download the APK from the build artifacts panel.
+#
+# This file lives at the repo root so Codemagic auto-detects it.
+
+workflows:
+  # ---------------------------------------------------------------------
+  # RELEASE BUILD — uses your uploaded keystore to produce a properly
+  # signed, installable APK. Requires the "Android keystore" signing
+  # setup step (point 4 above).
+  # ---------------------------------------------------------------------
+  release-build:
+    name: Release APK
+    instance_type: mac_mini_m1
+    max_build_duration: 30
+    environment:
+      groups:
+        - android_keystore_credentials   # populated automatically when you upload a keystore
+      vars:
+        PACKAGE_NAME: "com.obsidian.server"
+      node: 22
+      java: 17
+    triggering:
+      events:
+        - push
+        - tag
+      branch_patterns:
+        - pattern: main
+          include: true
+        - pattern: release/*
+          include: true
+      cancel_previous_builds: true
+    scripts:
+      - name: Install root RN dependencies
+        script: |
+          npm install --no-audit --no-fund
+      - name: Install embedded Node server dependencies (+ strip non-WASM sharp)
+        script: |
+          cd nodejs-assets/nodejs-project
+          npm install --omit=dev --no-audit --no-fund
+          # Sanity-check: only @img/sharp-wasm32 should remain under @img/
+          ls node_modules/@img/
+      - name: Configure signing from Codemagic keystore credentials
+        script: |
+          # Codemagic injects CM_KEYSTORE_PATH / CM_KEYSTORE_PASSWORD /
+          # CM_KEY_ALIAS / CM_KEY_PASSWORD when you upload a keystore via
+          # the web UI. We materialize them as android/keystore.properties
+          # so app/build.gradle.kts picks them up.
+          if [ -z "$CM_KEYSTORE_PATH" ]; then
+            echo "⚠️  No keystore credentials found — falling back to debug signing."
+            echo "    The APK will still install on your devices but is NOT Play-Store ready."
+            cp android/keystore.properties.example android/keystore.properties
+            sed -i '' "s|/absolute/path/to/release.keystore|$(pwd)/android/app/debug.keystore|" android/keystore.properties
+            sed -i '' "s|your-store-password|android|" android/keystore.properties
+            sed -i '' "s|your-key-password|android|" android/keystore.properties
+            sed -i '' "s|obsidian-tools|androiddebugkey|" android/keystore.properties
+          else
+            cat > android/keystore.properties <<EOF
+          storeFile=$CM_KEYSTORE_PATH
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          EOF
+            echo "✓ keystore.properties generated from Codemagic credentials"
+          fi
+      - name: Build release APK
+        script: |
+          cd android
+          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64
+    artifacts:
+      - android/app/build/outputs/apk/release/*.apk
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com    # ← CHANGE THIS to your email
+        notify:
+          success: true
+          failure: true
+
+  # ---------------------------------------------------------------------
+  # DEBUG BUILD — no signing setup required. Uses the bundled
+  # debug.keystore. Good for first-time CI validation.
+  # ---------------------------------------------------------------------
+  debug-build:
+    name: Debug APK
+    instance_type: mac_mini_m1
+    max_build_duration: 20
+    environment:
+      vars:
+        PACKAGE_NAME: "com.obsidian.server"
+      node: 22
+      java: 17
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: "*"
+          include: true
+      cancel_previous_builds: true
+    scripts:
+      - name: Install root RN dependencies
+        script: |
+          npm install --no-audit --no-fund
+      - name: Install embedded Node server dependencies (+ strip non-WASM sharp)
+        script: |
+          cd nodejs-assets/nodejs-project
+          npm install --omit=dev --no-audit --no-fund
+          ls node_modules/@img/
+      - name: Build debug APK
+        script: |
+          cd android
+          ./gradlew assembleDebug --no-daemon -PreactNativeArchitectures=arm64-v8a,x86_64
+    artifacts:
+      - android/app/build/outputs/apk/debug/*.apk
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com    # ← CHANGE THIS to your email
+        notify:
+          success: true
+          failure: true
