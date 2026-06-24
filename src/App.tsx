@@ -23,21 +23,16 @@ import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Platform,
   SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   View,
-  NativeModules,
-  NativeEventEmitter,
-  PermissionsAndroid,
-  Linking,
   Button,
 } from 'react-native';
 import {WebView} from 'react-native-webview';
 import nodejs from 'nodejs-mobile-react-native';
-import {pickVaultFolder, copySafTreeToInternal, hasVaultPath, getVaultPath, setVaultPath} from './native/vaultBridge';
+import {pickVaultFolder, copySafTreeToInternal, hasVaultPath, setVaultPath} from './native/vaultBridge';
 import {ServerStatusScreen} from './screens/ServerStatusScreen';
 import {VaultPickerScreen} from './screens/VaultPickerScreen';
 

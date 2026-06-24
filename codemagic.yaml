@@ -83,16 +83,21 @@ workflows:
           fi
       - name: Install required Android SDK components
         script: |
-          echo "=== Installing NDK 27.1.12297006 + CMake 3.22.1 (needed by nodejs-mobile + RN new arch) ==="
-          # sdkmanager is the Android SDK's package manager. Yesno pipes "y"
+          echo "=== Installing NDK 27.1.12297006 + CMake 3.22.1 + Build-Tools 36 + Platform 36 (needed by RN 0.86 + nodejs-mobile) ==="
+          # sdkmanager is the Android SDK's package manager. yesno pipes "y"
           # to its license prompt.
+          # Note: CMake 3.22.1 is sufficient because we have newArchEnabled=false
+          # (nodejs-mobile-rn v18.20.4 is a legacy module that needs old bridge).
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
             "ndk;27.1.12297006" \
             "cmake;3.22.1" \
-            "build-tools;35.0.0" \
-            "platforms;android-35" 2>&1 | tail -20 || true
-          echo "=== Verifying NDK install ==="
+            "build-tools;36.0.0" \
+            "platforms;android-36" 2>&1 | tail -20 || true
+          echo "=== Verifying install ==="
           ls $ANDROID_HOME/ndk/ 2>/dev/null
+          ls $ANDROID_HOME/build-tools/ 2>/dev/null
+          ls $ANDROID_HOME/platforms/ 2>/dev/null
+          ls $ANDROID_HOME/cmake/ 2>/dev/null
       - name: Build release APK
         script: |
           set -x
@@ -160,14 +165,17 @@ workflows:
           ls node_modules/@img/
       - name: Install required Android SDK components
         script: |
-          echo "=== Installing NDK 27.1.12297006 + CMake 3.22.1 ==="
+          echo "=== Installing NDK 27.1.12297006 + CMake 3.22.1 + Build-Tools 36 + Platform 36 ==="
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
             "ndk;27.1.12297006" \
             "cmake;3.22.1" \
-            "build-tools;35.0.0" \
-            "platforms;android-35" 2>&1 | tail -20 || true
-          echo "=== Verifying NDK install ==="
+            "build-tools;36.0.0" \
+            "platforms;android-36" 2>&1 | tail -20 || true
+          echo "=== Verifying install ==="
           ls $ANDROID_HOME/ndk/ 2>/dev/null
+          ls $ANDROID_HOME/build-tools/ 2>/dev/null
+          ls $ANDROID_HOME/platforms/ 2>/dev/null
+          ls $ANDROID_HOME/cmake/ 2>/dev/null
       - name: Build debug APK
         script: |
           set -x

@@ -1,13 +1,9 @@
-// Top-level build.gradle for RN 0.86 (Groovy DSL).
-// Copied verbatim from the RN 0.86 template, with project-specific tweaks
-// (Build-Tools 35.0.0 instead of 36.0.0 because Codemagic pre-installs 35).
-
 buildscript {
     ext {
-        buildToolsVersion = "35.0.0"
+        buildToolsVersion = "36.0.0"
         minSdkVersion = 24
-        compileSdkVersion = 35
-        targetSdkVersion = 35
+        compileSdkVersion = 36
+        targetSdkVersion = 36
         ndkVersion = "27.1.12297006"
         kotlinVersion = "2.1.20"
     }

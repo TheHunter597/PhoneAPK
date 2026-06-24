@@ -11,10 +11,14 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
  * The actual UI (WebView, vault picker, etc.) is rendered by React Native.
  * We only handle launch + configuration changes here.
  *
- * NOTE: This is the RN 0.86 API. The DefaultReactActivityDelegate takes 3
- * args: (this, mainComponentName, fabricEnabled). Previous RN versions used
- * 4 args (with bridgelessEnabled + isBridgelessArchitectureEnabled) which
- * no longer compile in 0.86.
+ * NOTE: With `newArchEnabled=false` in gradle.properties, `fabricEnabled`
+ * returns false, so the DefaultReactActivityDelegate runs in legacy bridge
+ * mode — which is what nodejs-mobile-react-native v18.20.4 requires.
+ *
+ * RN 0.86's DefaultReactActivityDelegate takes 3 args:
+ *   (this, mainComponentName, fabricEnabled)
+ * Previous RN versions used 4 args (with bridgelessEnabled + isBridgeless)
+ * which no longer compile in 0.86.
  */
 class MainActivity : ReactActivity() {
 

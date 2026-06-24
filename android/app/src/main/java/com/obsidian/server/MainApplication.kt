@@ -13,10 +13,13 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
  * Wires up React Native + autolinked native packages + our own SafSync
  * native package (which exposes the SAF tree-copy / export functions to JS).
  *
- * NOTE: This is the RN 0.86 API. Previous versions of RN used a
- * ReactNativeHost + SoLoader.init + DefaultNewArchitectureEntryPoint.load()
- * pattern, but RN 0.86 deprecated those in favor of the simpler
- * `loadReactNative(this)` + `getDefaultReactHost(...)` pattern.
+ * NOTE: This is the RN 0.86 API. `loadReactNative(this)` sets up the React
+ * host. With `newArchEnabled=false` in gradle.properties, the host runs in
+ * legacy bridge mode (which is what nodejs-mobile-react-native v18.20.4
+ * requires — it's not a TurboModule).
+ *
+ * Our custom SafSyncPackage is appended to PackageList(this).packages so
+ * it's reachable from JS via NativeModules.SafSync.
  */
 class MainApplication : Application(), ReactApplication {
 
